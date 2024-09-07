@@ -48,4 +48,4 @@ COPY . /app
 EXPOSE 5001
 
 # Set the default command to run Streamlit
-CMD ["conda", "run", "-n", "myenv", "streamlit", "run", "app.py"]
+CMD ["conda", "run", "-n", "myenv", "streamlit", "run", "app.py", "--server.port=5001"]
