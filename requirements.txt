@@ -1,6 +1,3 @@
-streamlit
-langchain
-faiss-cpu
 mistral
 milvus
 nemo-toolkit
