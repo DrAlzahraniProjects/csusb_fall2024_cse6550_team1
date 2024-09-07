@@ -1,8 +1,14 @@
 # Use the official Ubuntu image as a parent image
 FROM ubuntu:latest
 
+# Set the working directory
+WORKDIR /app
+
+# Copy the rest of the application code
+COPY . .
+
 # Set environment variables
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies including Python, pip, and Git
@@ -32,12 +38,6 @@ RUN /opt/venv/bin/pip install --no-cache-dir \
 	nemo-toolkit \
 	nemoguardrails
 
-# Set the working directory
-WORKDIR /app
-
-# Copy the rest of the application code
-COPY . /app
-
 # Set environment variable to use the virtual environment
 ENV PATH="/opt/venv/bin:$PATH"
 
@@ -45,4 +45,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 EXPOSE 5001
 
 # Set the default command to run Streamlit
-CMD ["streamlit", "run", "app.py"]
+CMD ["streamlit", "run", "app.py", "--server.port=5001", "--server.address=0.0.0.0"]
