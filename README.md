@@ -1,15 +1,15 @@
 # Basic StreamLit Docker Setup
 
-Navigate to folder for repository
-
-```bash
-$ cd < folder >/< location >/
-```
-
 Clone repository from HTTPS
 
 ```bash
 $ git clone https://github.com/DrAlzahraniProjects/csusb_fall2024_cse6550_team1.git
+```
+
+Navigate to folder for repository
+
+```bash
+$ cd csusb_fall2024_cse6550_team1
 ```
 
 Build the image using the following command
