@@ -2,7 +2,7 @@
 FROM ubuntu:latest
 
 # Set environment variables
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies including wget, curl, and bzip2
@@ -34,7 +34,7 @@ COPY requirements.txt /app/requirements.txt
 RUN mamba env create -f /app/environment.yml
 
 # Activate the environment for subsequent commands
-SHELL ["conda", "run", "-n", "myenv", "/bin/bash", "-c"]
+SHELL ["mamba", "run", "-n", "myenv", "/bin/bash", "-c"]
 
 # Install pip packages from requirements.txt
 RUN pip install -r /app/requirements.txt
@@ -46,4 +46,4 @@ COPY . /app
 EXPOSE 5001
 
 # Set the default command to run Streamlit
-CMD ["conda", "run", "-n", "myenv", "streamlit", "run", "app.py", "--server.port=5001"]
+CMD ["mamba", "run", "-n", "myenv", "streamlit", "run", "app.py", "--server.port=5001"]
