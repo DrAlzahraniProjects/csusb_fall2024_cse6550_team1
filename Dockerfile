@@ -1,5 +1,5 @@
 # Use the official Ubuntu image as a parent image
-FROM python:3.12
+FROM python:3.12-slim
 
 # Set environment variables
 ENV LANG=C.UTF-8
@@ -7,7 +7,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies including wget, curl, and bzip2
 RUN apt-get update && apt-get install -y \
-    build-essential \
+    gcc \
+    g++ \
     git \
     curl \
     wget \
@@ -37,7 +38,7 @@ RUN mamba env create -f /app/environment.yml
 SHELL ["mamba", "run", "-n", "myenv", "/bin/bash", "-c"]
 
 # Install pip packages from requirements.txt
-RUN pip install -r /app/requirements.txt
+# RUN pip install -r /app/requirements.txt
 
 # Copy the rest of the application code
 COPY . /app
