@@ -1,5 +1,5 @@
 # Use the official Ubuntu image as a parent image
-FROM ubuntu:latest
+FROM python:3.12-slim
 
 # Set environment variables
 ENV LANG=C.UTF-8
