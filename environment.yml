@@ -6,3 +6,4 @@ dependencies:
   - streamlit
   - langchain
   - faiss-cpu
+  - pip
