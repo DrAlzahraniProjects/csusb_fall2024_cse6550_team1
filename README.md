@@ -36,7 +36,7 @@ Before you begin, make sure you have the following installed on your machine:
    Build the Docker image using the following command:
 
    ```bash
-   docker build --no-cache -t itchatbot:latest .
+   docker build --no-cache -t team1_app:latest .
    ```
 
 4. **Run the Docker container**
@@ -44,7 +44,7 @@ Before you begin, make sure you have the following installed on your machine:
    Run the Docker container with the following command:
 
    ```bash
-   docker run -d -p 5001:5001 itchatbot
+   docker run -d -p 5001:5001 team1_app
    ```
 
    The application will be accessible at: [http://localhost:5001](http://localhost:5001)
