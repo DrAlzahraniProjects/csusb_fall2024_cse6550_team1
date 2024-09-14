@@ -2,3 +2,5 @@ mistral
 milvus
 nemo-toolkit
 nemoguardrails
+streamlit
+jupypter
