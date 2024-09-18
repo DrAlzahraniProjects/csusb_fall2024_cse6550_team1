@@ -31,7 +31,15 @@ Before you begin, make sure you have the following installed on your machine:
    cd csusb_fall2024_cse6550_team1
    ```
 
-3. **Build the Docker image**
+3. **Update the local repository**
+
+   Ensureyour local repository is up to date by running:
+
+   ```bash
+   git pull origin main
+   ```
+   
+4. **Build the Docker image**
 
    Build the Docker image using the following command:
 
@@ -39,7 +47,7 @@ Before you begin, make sure you have the following installed on your machine:
    docker build --no-cache -t team1_app:latest .
    ```
 
-4. **Run the Docker container**
+5. **Run the Docker container**
 
    Run the Docker container with the following command:
 
