@@ -33,7 +33,7 @@ Before you begin, make sure you have the following installed on your machine:
 
 3. **Update the local repository**
 
-   Ensureyour local repository is up to date by running:
+   Ensure your local repository is up to date by running:
 
    ```bash
    git pull origin main
@@ -44,7 +44,7 @@ Before you begin, make sure you have the following installed on your machine:
    Build the Docker image using the following command:
 
    ```bash
-   docker build --no-cache -t team1_app:latest .
+   docker build -t team1_app:latest .
    ```
 
 5. **Run the Docker container**
