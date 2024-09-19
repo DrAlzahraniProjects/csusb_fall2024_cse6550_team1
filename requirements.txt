@@ -1,2 +1,4 @@
 streamlit
 jupyter
+langchain
+faiss-cpu
