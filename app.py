@@ -7,11 +7,30 @@ def main():
     st.set_page_config(layout="wide")
 
     st.title("Hello from Team 1")
-    
-# Sidebar for chat history
-    st.sidebar.title("10 statistics reports")
-    chat_history = st.sidebar.empty()
 
+    # Sidebar for chat history and statistics
+    st.sidebar.title("10 Statistics Reports")
+    
+    # List of statistics to display
+    statistics = [
+        "Number of questions",
+        "Number of correct answers",
+        "Number of incorrect answers",
+        "User engagement metrics",
+        "Response time analysis",
+        "Accuracy rate",
+        "Common topics or keywords",
+        "User satisfaction ratings",
+        "Improvement over time",
+        "Feedback summary",
+        "Statistics per day and overall"
+    ]
+
+    # Display statistics in the sidebar
+    for stat in statistics:
+        st.sidebar.write(stat)
+
+    chat_history = st.sidebar.empty()
 
     if 'user_input' not in st.session_state:
         st.session_state['user_input'] = ""
@@ -19,7 +38,7 @@ def main():
     # Display the entered text in a text area above the input field if text exists
     if st.session_state['user_input']:
         st.text_area("Your input:", value=st.session_state['user_input'], height=100, disabled=True)
-
+        
     # Create a container for input and button to align them properly
     with st.container():
         # Create two columns for input field and button
@@ -37,15 +56,6 @@ def main():
     if submit_button and user_input_new:
         # Update session state with the new input
         st.session_state['user_input'] = user_input_new
-    
-if __name__ == "__main__":
-	# If streamlit instance is running
-	if os.environ.get("STREAMLIT_RUNNING") == "1":
-		main()
 
-	# If streamlit is not running
-	else:
-		os.environ["STREAMLIT_RUNNING"] = "1" # Set the environment variable to indicate Streamlit is running
-		subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0"])
-		subprocess.Popen(["service", "nginx", "start"])
-		subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"])
+if __name__ == "__main__":
+    main()
