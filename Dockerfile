@@ -13,6 +13,7 @@ WORKDIR /app
 
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \
+	nginx \
 	wget \
 	bzip2 \
 	ca-certificates \
@@ -46,11 +47,18 @@ COPY requirements.txt /app/requirements.txt
 # Install Python packages from requirements.txt
 RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 
+# Copy NGINX config
+COPY config/nginx.conf /etc/nginx/nginx.conf
+
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Make port 5001 available to the world outside this container
+# NGINX port 80 for HTTP traffic
+EXPOSE 80
+# Streamlit port
 EXPOSE 5001
+# Jupyter Notebook port
+EXPOSE 8888
 
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/mambaforge/envs/team1_env/bin:$PATH
