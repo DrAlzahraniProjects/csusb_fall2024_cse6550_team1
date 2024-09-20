@@ -55,8 +55,6 @@ Before you begin, make sure you have the following installed on your machine:
    docker run -d -p 80:80 -p 5001:5001 -p 8888:8888 team1_app
    ```
 
-   The application will be accessible at: [http://localhost:5001](http://localhost:5001)
-
 ### Accessing the Application
 
 Once the Docker container is running, you can access the IT Support Chatbot through your browser at:
