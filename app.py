@@ -13,7 +13,7 @@ def main():
     # Load the CSS file
     load_css("assets/style.css")
 
-    header.title("Hello from Team 1")
+    header.title("Team 1 Support Chatbot")
     header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
 
     # Sidebar for chat history and statistics
