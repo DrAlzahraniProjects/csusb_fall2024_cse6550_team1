@@ -54,11 +54,11 @@ COPY config/nginx.conf /etc/nginx/nginx.conf
 COPY . /app
 
 # NGINX port 80 for HTTP traffic
-EXPOSE 80
+EXPOSE 81
 # Streamlit port
 EXPOSE 5001
 # Jupyter Notebook port
-EXPOSE 8888
+EXPOSE 6001
 
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/mambaforge/envs/team1_env/bin:$PATH
