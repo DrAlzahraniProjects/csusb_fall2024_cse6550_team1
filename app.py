@@ -3,10 +3,12 @@ import os
 import subprocess
 
 def main():
-    """Main Streamlit app logic."""
+    """
+    Main Streamlit app logic.
+    """
     st.set_page_config(layout="wide")
 
-    st.title("Hello from Team 1")
+    st.title("Team 1 Chatbot")
 
     # Sidebar for chat history and statistics
     st.sidebar.title("10 Statistics Reports")
@@ -30,51 +32,28 @@ def main():
     for stat in statistics:
         st.sidebar.write(stat)
 
-    # Chat history
-    if 'chat_history' not in st.session_state:
-        st.session_state['chat_history'] = []
+    # Display the messages in the current session
+    load_display_chat()
+    
+    # Getting text input and adding it to Session State
+    if prompt := st.chat_input("Message Team1 Chatbot"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user", avatar=None):
+            st.markdown(prompt)
+        with st.chat_message("assistant"):
+            st.write(f"You entered: {prompt}")
+        st.session_state.messages.append({"role": "assistant", "content": f"You entered: {prompt}"})
+      
+def load_display_chat():
+    """
+    Load and display all the messages in the current session
+    """
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-    # Display chat history
-    st.subheader("Chat History")
-    for chat in st.session_state['chat_history']:
-        st.write(f"You: {chat['user']}")
-        st.write(f"Bot: {chat['bot']}")
-        st.write("---")
-
-    # Text input field and submit button logic
-    if 'user_input' not in st.session_state:
-        st.session_state['user_input'] = ""
-
-    # Display the entered text in a text area above the input field if text exists
-    if st.session_state['user_input']:
-        st.text_area("Your input:", value=st.session_state['user_input'], height=100, disabled=True)
-
-    # Create a container for input and button to align them properly
-    with st.container():
-        # Create two columns for input field and button
-        col1, col2 = st.columns([4, 1])
-
-        # Place the input box in the first column
-        with col1:
-            user_input_new = st.text_input("", placeholder="Enter something here")
-
-        # Place the button in the second column and set its position
-        with col2:
-            submit_button = st.button("Submit")
-
-    # Handle button click event
-    if submit_button and user_input_new:
-        # Update session state with the new input
-        st.session_state['user_input'] = user_input_new
-        
-        # Simulating a bot response (you can replace this with actual bot logic)
-        bot_response = f"Bot's response to: {user_input_new}"
-
-        # Append the conversation to chat history
-        st.session_state['chat_history'].append({"user": user_input_new, "bot": bot_response})
-
-        # Clear the input field after submission
-        st.session_state['user_input'] = ""
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
 if __name__ == "__main__":
     # If streamlit instance is running
