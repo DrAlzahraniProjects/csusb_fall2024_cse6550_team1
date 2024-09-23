@@ -3,12 +3,18 @@ import os
 import subprocess
 
 def main():
-    """
-    Main Streamlit app logic.
-    """
-    st.set_page_config(layout="wide")
+    """Main Streamlit app logic."""
+    header = st.container()
 
-    st.title("Team 1 Chatbot")
+    def load_css(file_name):
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+    # Load the CSS file
+    load_css("assets/style.css")
+
+    header.title("Team 1 Support Chatbot")
+    header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
 
     # Sidebar for chat history and statistics
     st.sidebar.title("10 Statistics Reports")
@@ -32,28 +38,24 @@ def main():
     for stat in statistics:
         st.sidebar.write(stat)
 
-    # Display the messages in the current session
-    load_display_chat()
-    
-    # Getting text input and adding it to Session State
-    if prompt := st.chat_input("Message Team1 Chatbot"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user", avatar=None):
-            st.markdown(prompt)
-        with st.chat_message("assistant"):
-            st.write(f"You entered: {prompt}")
-        st.session_state.messages.append({"role": "assistant", "content": f"You entered: {prompt}"})
-      
-def load_display_chat():
-    """
-    Load and display all the messages in the current session
-    """
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # Render existing messages
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        if message["role"] == "assistant":
+            st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your saying! {message['content']}</div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
+
+    # Handle button click event
+    if prompt := st.chat_input("Message Team1 support chatbot"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.messages.append({"role": "assistant", "content": prompt})
+
+        st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your saying! {prompt}</div>", unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     # If streamlit instance is running

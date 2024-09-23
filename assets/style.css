@@ -1,0 +1,28 @@
+div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
+    text-align: center;
+    position: sticky;
+    top: 2.875rem;
+    z-index: 999;
+}
+
+.user-message {
+    text-align: right;
+    background-color: #f1f1f1;
+    color: black;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    max-width: 70%;
+    display: inline-block;
+    float: right;
+}
+
+.assistant-message {
+    text-align: left;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    width: 70%;
+    float: left;
+    clear: both;
+}
