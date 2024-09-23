@@ -4,9 +4,17 @@ import subprocess
 
 def main():
     """Main Streamlit app logic."""
-    st.set_page_config(layout="wide")
+    header = st.container()
 
-    st.title("Hello from Team 1")
+    def load_css(file_name):
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+    # Load the CSS file
+    load_css("assets/style.css")
+
+    header.title("Hello from Team 1")
+    header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
 
     # Sidebar for chat history and statistics
     st.sidebar.title("10 Statistics Reports")
@@ -34,8 +42,6 @@ def main():
     if 'chat_history' not in st.session_state:
         st.session_state['chat_history'] = []
 
-    # Display chat history
-    st.subheader("Chat History")
 
     # Text input field and submit button logic
     if 'user_input' not in st.session_state:
