@@ -36,10 +36,6 @@ def main():
 
     # Display chat history
     st.subheader("Chat History")
-    for chat in st.session_state['chat_history']:
-        st.write(f"You: {chat['user']}")
-        st.write(f"Bot: {chat['bot']}")
-        st.write("---")
 
     # Text input field and submit button logic
     if 'user_input' not in st.session_state:
@@ -49,18 +45,6 @@ def main():
     if st.session_state['user_input']:
         st.text_area("Your input:", value=st.session_state['user_input'], height=100, disabled=True)
 
-    # Create a container for input and button to align them properly
-    # with st.container():
-    #     # Create two columns for input field and button
-    #     col1, col2 = st.columns([4, 1])
-    #
-    #     # Place the input box in the first column
-    #     with col1:
-    #         user_input_new = st.text_input("", placeholder="Enter something here")
-    #
-    #     # Place the button in the second column and set its position
-    #     with col2:
-    #         submit_button = st.button("Submit")
 
     # Handle button click event
     if prompt := st.chat_input("Text here"):
@@ -75,6 +59,11 @@ def main():
 
         # Clear the input field after submission
         st.session_state['user_input'] = ""
+
+    for chat in st.session_state['chat_history']:
+        st.write(f"You: {chat['user']}")
+        st.write(f"Bot: {chat['bot']}")
+        st.write("---")
 
 if __name__ == "__main__":
     # If streamlit instance is running
