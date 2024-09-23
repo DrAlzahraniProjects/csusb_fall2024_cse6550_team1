@@ -41,18 +41,20 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # Render existing messages
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        if message["role"] == "assistant":
+            st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your sawing! {message['content']}</div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
 
     # Handle button click event
-    if prompt := st.chat_input("Text here"):
+    if prompt := st.chat_input("Message Team1 support chatbot"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.messages.append({"role": "assistant", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        with st.chat_message("assistant"):
-            st.markdown(prompt)
+
+        st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your sawing! {prompt}</div>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
