@@ -38,38 +38,22 @@ def main():
     for stat in statistics:
         st.sidebar.write(stat)
 
-    # Chat history
-    if 'chat_history' not in st.session_state:
-        st.session_state['chat_history'] = []
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-
-    # Text input field and submit button logic
-    if 'user_input' not in st.session_state:
-        st.session_state['user_input'] = ""
-
-    # Display the entered text in a text area above the input field if text exists
-    if st.session_state['user_input']:
-        st.text_area("Your input:", value=st.session_state['user_input'], height=100, disabled=True)
-
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
     # Handle button click event
     if prompt := st.chat_input("Text here"):
-        # Update session state with the new input
-        st.session_state['user_input'] = prompt
-        
-        # Simulating a bot response (you can replace this with actual bot logic)
-        bot_response = f"Bot's response to: {prompt}"
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.messages.append({"role": "assistant", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        with st.chat_message("assistant"):
+            st.markdown(prompt)
 
-        # Append the conversation to chat history
-        st.session_state['chat_history'].append({"user": prompt, "bot": bot_response})
-
-        # Clear the input field after submission
-        st.session_state['user_input'] = ""
-
-    for chat in st.session_state['chat_history']:
-        st.write(f"You: {chat['user']}")
-        st.write(f"Bot: {chat['bot']}")
-        st.write("---")
 
 if __name__ == "__main__":
     # If streamlit instance is running
