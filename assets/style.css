@@ -7,10 +7,13 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
 
 .user-message {
     text-align: right;
+    background-color: #f1f1f1;
+    color: black;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 10px;
-    width: 70%;
+    max-width: 70%;
+    display: inline-block;
     float: right;
 }
 

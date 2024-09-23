@@ -44,7 +44,7 @@ def main():
     # Render existing messages
     for message in st.session_state.messages:
         if message["role"] == "assistant":
-            st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your sawing! {message['content']}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your saying! {message['content']}</div>", unsafe_allow_html=True)
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
 
@@ -54,7 +54,7 @@ def main():
         st.session_state.messages.append({"role": "assistant", "content": prompt})
 
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your sawing! {prompt}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your saying! {prompt}</div>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
