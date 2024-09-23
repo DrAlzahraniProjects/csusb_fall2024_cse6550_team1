@@ -5,6 +5,16 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
     z-index: 999;
 }
 
+.chat-title{
+    font-size: 50px;
+    font-weight: bold;
+    background-color:#ffffff;
+    z-index: 999;
+    text-align: center;
+    position: sticky;
+    top: 2.875rem;
+}
+
 .user-message {
     text-align: right;
     background-color: #f1f1f1;
