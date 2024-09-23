@@ -3,7 +3,9 @@ import os
 import subprocess
 
 def main():
-    """Main Streamlit app logic."""
+    """
+    Main Streamlit app logic.
+    """
     st.set_page_config(layout="wide")
 
     st.title("Team 1 Chatbot")
@@ -30,10 +32,10 @@ def main():
     for stat in statistics:
         st.sidebar.write(stat)
 
-    # display the messages in the current session
+    # Display the messages in the current session
     load_display_chat()
     
-    # getting text input and adding it to Session State
+    # Getting text input and adding it to Session State
     if prompt := st.chat_input("Message Team1 Chatbot"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=None):
@@ -46,7 +48,6 @@ def load_display_chat():
     """
     Load and display all the messages in the current session
     """
-
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
