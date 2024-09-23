@@ -4,9 +4,56 @@ import subprocess
 
 def main():
     """Main Streamlit app logic."""
-    st.set_page_config(layout="wide")
+    header = st.container()
 
-    st.title("Hello from Team 1")
+    def load_css(file_name):
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+    # Load the CSS file
+    load_css("assets/style.css")
+
+    # Header title with fixed position
+    header.title("Team 1 Support Chatbot")
+
+    # Fix header and create a scrollable chat window
+    header.markdown(
+        """
+        <style>
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #f5f5f5;
+            z-index: 1000;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .chat-container {
+            margin-top: 80px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .user-message, .assistant-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background-color: #e1f5fe;
+        }
+        .assistant-message {
+            background-color: #fce4ec;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
     # Sidebar for chat history and statistics
     st.sidebar.title("10 Statistics Reports")
@@ -30,53 +77,31 @@ def main():
     for stat in statistics:
         st.sidebar.write(stat)
 
-    # Chat history
-    if 'chat_history' not in st.session_state:
-        st.session_state['chat_history'] = []
+    # Chat container for messages
+    st.write("<div class='chat-container'>", unsafe_allow_html=True)
 
-    # Display chat history
-    st.subheader("Chat History")
-    for chat in st.session_state['chat_history']:
-        st.write(f"You: {chat['user']}")
-        st.write(f"Bot: {chat['bot']}")
-        st.write("---")
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-    # Text input field and submit button logic
-    if 'user_input' not in st.session_state:
-        st.session_state['user_input'] = ""
-
-    # Display the entered text in a text area above the input field if text exists
-    if st.session_state['user_input']:
-        st.text_area("Your input:", value=st.session_state['user_input'], height=100, disabled=True)
-
-    # Create a container for input and button to align them properly
-    with st.container():
-        # Create two columns for input field and button
-        col1, col2 = st.columns([4, 1])
-
-        # Place the input box in the first column
-        with col1:
-            user_input_new = st.text_input("", placeholder="Enter something here")
-
-        # Place the button in the second column and set its position
-        with col2:
-            submit_button = st.button("Submit")
+    # Render existing messages
+    for message in st.session_state.messages:
+        if message["role"] == "assistant":
+            st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what you're saying! {message['content']}</div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
 
     # Handle button click event
-    if submit_button and user_input_new:
-        # Update session state with the new input
-        st.session_state['user_input'] = user_input_new
-        
-        # Simulating a bot response (you can replace this with actual bot logic)
-        bot_response = f"Bot's response to: {user_input_new}"
+    if prompt := st.chat_input("Message Team1 support chatbot"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.messages.append({"role": "assistant", "content": prompt})
 
-        # Append the conversation to chat history
-        st.session_state['chat_history'].append({"user": user_input_new, "bot": bot_response})
+        st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what you're saying! {prompt}</div>", unsafe_allow_html=True)
 
-        # Clear the input field after submission
-        st.session_state['user_input'] = ""
+    st.write("</div>", unsafe_allow_html=True)
 
-if __name__ == "__main__":
+
+if _name_ == "main":
     # If streamlit instance is running
     if os.environ.get("STREAMLIT_RUNNING") == "1":
         main()
@@ -84,6 +109,6 @@ if __name__ == "__main__":
     # If streamlit is not running
     else:
         os.environ["STREAMLIT_RUNNING"] = "1"  # Set the environment variable to indicate Streamlit is running
-        subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0"])
+        subprocess.Popen(["streamlit", "run", file, "--server.port=5001", "--server.address=0.0.0.0"])
         subprocess.Popen(["service", "nginx", "start"])
-        subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"])
+        subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root"])
