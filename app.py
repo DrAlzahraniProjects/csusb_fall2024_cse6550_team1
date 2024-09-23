@@ -30,8 +30,10 @@ def main():
     for stat in statistics:
         st.sidebar.write(stat)
 
+    # display the messages in the current session
     load_display_chat()
     
+    # getting text input and adding it to Session State
     if prompt := st.chat_input("Message Team1 Chatbot"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar=None):
