@@ -58,7 +58,7 @@ EXPOSE 80
 # Streamlit port
 EXPOSE 5001
 # Jupyter Notebook port
-EXPOSE 8888
+EXPOSE 6001
 
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/mambaforge/envs/team1_env/bin:$PATH
