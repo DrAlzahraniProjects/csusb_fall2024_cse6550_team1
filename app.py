@@ -14,7 +14,7 @@ def main():
     load_css("assets/style.css")
 
     header.title("Team 1 Support Chatbot")
-    header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
+    header.write("""<div class='fixed-header'></div>""", unsafe_allow_html=True)
 
     # Sidebar for chat history and statistics
     st.sidebar.title("10 Statistics Reports")
@@ -44,25 +44,41 @@ def main():
     # Render existing messages
     for message in st.session_state.messages:
         if message["role"] == "assistant":
-            st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your saying! {message['content']}</div>", unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class='assistant-message'>
+                    I'm still learning, but I can repeat what you're saying! {message['content']}
+                    <div class="feedback-buttons">
+                        <span>📋</span>
+                        <span>👍</span>
+                        <span>👎</span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
 
-    # Handle button click event
+    # Handle user input
     if prompt := st.chat_input("Message Team1 support chatbot"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.messages.append({"role": "assistant", "content": prompt})
 
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='assistant-message'>I'm still learning, but I can repeat what your saying! {prompt}</div>", unsafe_allow_html=True)
+        st.markdown(f"""
+            <div class='assistant-message'>
+                I'm still learning, but I can repeat what you're saying! {prompt}
+                <div class="feedback-buttons">
+                    <span>📋</span>
+                    <span>👍</span>
+                    <span>👎</span>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
     # If streamlit instance is running
     if os.environ.get("STREAMLIT_RUNNING") == "1":
         main()
-
-    # If streamlit is not running
     else:
         os.environ["STREAMLIT_RUNNING"] = "1"  # Set the environment variable to indicate Streamlit is running
         subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0"])
