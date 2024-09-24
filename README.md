@@ -59,7 +59,7 @@ Before you begin, make sure you have the following installed on your machine:
 
 Once the Docker container is running, you can access the IT Support Chatbot through your browser at:
 
-[http://localhost:81/team1/](http://localhost:81/team1/)), [http://localhost:5001/](http://localhost:5001/)
+[http://localhost:81/team1/](http://localhost:81/team1/), [http://localhost:5001/](http://localhost:5001/)
 
 ---
 
