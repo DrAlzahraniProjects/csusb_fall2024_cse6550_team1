@@ -41,10 +41,9 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Render existing messages
-    for message in st.session_state.messages:
-        if message["role"] == "assistant":
-            st.markdown(f"""
+    def render_message(message):
+        if message["role"] == "assistant": 
+            return f"""
                 <div class='assistant-message'>
                     I'm still learning, but I can repeat what you're saying! {message['content']}
                     <div class="feedback-buttons">
@@ -53,9 +52,17 @@ def main():
                         <span>👎</span>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
+            """
+            else:
+            return f"<div class='user-message'>{message['content']}</div>"
+            # Render existing messages
+            for message in st.session_state.messages:
+                st.markdown(render_message(message), unsafe_allow_html=True)
+
+
+    # Render existing messages
+    for message in st.session_state.messages:
+        st.markdown(render_message(message), unsafe_allow_html=True)
 
     # Handle user input
     if prompt := st.chat_input("Message Team1 support chatbot"):
