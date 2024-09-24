@@ -41,19 +41,29 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # Handle feedback for each message
+    def handle_feedback(message_index, feedback_type):
+        if feedback_type == "like":
+            st.session_state.messages[message_index]["feedback"] = "like"
+        elif feedback_type == "dislike":
+            st.session_state.messages[message_index]["feedback"] = "dislike"
+
     # Render existing messages
-    for message in st.session_state.messages:
+    for idx, message in enumerate(st.session_state.messages):
         if message["role"] == "assistant":
             st.markdown(f"""
                 <div class='assistant-message'>
                     I'm still learning, but I can repeat what you're saying! {message['content']}
-                    <div class="feedback-buttons">
-                        <span>📋</span>
-                        <span>👍</span>
-                        <span>👎</span>
-                    </div>
                 </div>
             """, unsafe_allow_html=True)
+            # Display like and dislike buttons
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("👍 Like", key=f"like_{idx}"):
+                    handle_feedback(idx, "like")
+            with col2:
+                if st.button("👎 Dislike", key=f"dislike_{idx}"):
+                    handle_feedback(idx, "dislike")
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
 
@@ -66,13 +76,17 @@ def main():
         st.markdown(f"""
             <div class='assistant-message'>
                 I'm still learning, but I can repeat what you're saying! {prompt}
-                <div class="feedback-buttons">
-                    <span>📋</span>
-                    <span>👍</span>
-                    <span>👎</span>
-                </div>
             </div>
         """, unsafe_allow_html=True)
+
+        # Add like and dislike buttons for the newly generated assistant message
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("👍 Like", key=f"like_new"):
+                handle_feedback(len(st.session_state.messages) - 1, "like")
+        with col2:
+            if st.button("👎 Dislike", key=f"dislike_new"):
+                handle_feedback(len(st.session_state.messages) - 1, "dislike")
 
 
 if __name__ == "__main__":
