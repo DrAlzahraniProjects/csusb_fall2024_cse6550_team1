@@ -53,12 +53,8 @@ def main():
                     </div>
                 </div>
             """
-            else:
+        else:
             return f"<div class='user-message'>{message['content']}</div>"
-            # Render existing messages
-            for message in st.session_state.messages:
-                st.markdown(render_message(message), unsafe_allow_html=True)
-
 
     # Render existing messages
     for message in st.session_state.messages:
