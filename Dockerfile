@@ -49,8 +49,6 @@ RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# NGINX port 80 for HTTP traffic
-#EXPOSE 81
 # Streamlit port
 EXPOSE 5001
 # Jupyter Notebook port
