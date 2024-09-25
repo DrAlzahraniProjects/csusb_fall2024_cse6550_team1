@@ -1,15 +1,14 @@
-import streamlit as st
-import os
-import subprocess
-
 def main():
     """Main Streamlit app logic."""
     header = st.container()
 
     def load_css(file_name):
-        with open(file_name) as f:
-            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
+        try:
+            with open(file_name) as f:
+                st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+        except FileNotFoundError:
+            st.error(f"css file '{file_name}' not found.")
+            
     # Load the CSS file
     load_css("assets/style.css")
 
@@ -40,14 +39,13 @@ def main():
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
-
+    
     def render_message(message):
         if message["role"] == "assistant": 
             return f"""
                 <div class='assistant-message'>
                     I'm still learning, but I can repeat what you're saying! {message['content']}
                     <div class="feedback-buttons">
-                        <span>📋</span>
                         <span>👍</span>
                         <span>👎</span>
                     </div>
@@ -70,7 +68,6 @@ def main():
             <div class='assistant-message'>
                 I'm still learning, but I can repeat what you're saying! {prompt}
                 <div class="feedback-buttons">
-                    <span>📋</span>
                     <span>👍</span>
                     <span>👎</span>
                 </div>
