@@ -1,3 +1,7 @@
+import streamlit as st
+import os
+import subprocess
+
 def main():
     """Main Streamlit app logic."""
     header = st.container()
@@ -39,7 +43,7 @@ def main():
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    
+
     def render_message(message):
         if message["role"] == "assistant": 
             return f"""
