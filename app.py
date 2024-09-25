@@ -13,8 +13,8 @@ def main():
     # Load the CSS file
     load_css("assets/style.css")
 
-    header.write("""<div class='chat-title'>Team 1 Support Chatbot</div>""", unsafe_allow_html=True)
-    header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
+    header.title("Team 1 Support Chatbot")
+    header.write("""<div class='fixed-header'></div>""", unsafe_allow_html=True)
 
     # Sidebar for chat history and statistics
     st.sidebar.title("10 Statistics Reports")
@@ -48,7 +48,6 @@ def main():
                 <div class='assistant-message'>
                     I'm still learning, but I can repeat what you're saying! {message['content']}
                     <div class="feedback-buttons">
-                        <span>📋</span>
                         <span>👍</span>
                         <span>👎</span>
                     </div>
@@ -67,7 +66,6 @@ def main():
             <div class='assistant-message'>
                 I'm still learning, but I can repeat what you're saying! {prompt}
                 <div class="feedback-buttons">
-                    <span>📋</span>
                     <span>👍</span>
                     <span>👎</span>
                 </div>
