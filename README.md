@@ -7,7 +7,6 @@ This repository contains the IT Support Chatbot project developed by **CSUSB Fal
 - [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Usage](#usage)
 - [Accessing the Application](#accessing-the-application)
 - [Troubleshooting](#troubleshooting)
 - [Contributors](#contributors)
