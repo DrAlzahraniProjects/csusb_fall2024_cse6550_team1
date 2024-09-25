@@ -7,9 +7,12 @@ def main():
     header = st.container()
 
     def load_css(file_name):
-        with open(file_name) as f:
-            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
+        try:
+            with open(file_name) as f:
+                st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+        except FileNotFoundError:
+            st.error(f"css file '{file_name}' not found.")
+            
     # Load the CSS file
     load_css("assets/style.css")
 
