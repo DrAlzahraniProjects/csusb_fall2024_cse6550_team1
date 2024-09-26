@@ -1,6 +1,15 @@
 # IT Support Chatbot
 
-This repository contains the project for the IT Support Chatbot developed by the CSUSB Fall 2024 CSE6550 Team 1.
+This repository contains the IT Support Chatbot project developed by **CSUSB Fall 2024 CSE6550 Team 1**. The chatbot is designed to assist users with IT-related queries and support.
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Accessing the Application](#accessing-the-application)
+- [Troubleshooting](#troubleshooting)
+- [Contributors](#contributors)
 
 ## Getting Started
 
@@ -8,7 +17,7 @@ Follow these instructions to set up the application locally using Docker.
 
 ### Prerequisites
 
-Before you begin, make sure you have the following installed on your machine:
+Before you begin, ensure you have the following installed on your machine:
 
 - [Docker](https://www.docker.com/get-started)
 - [Git](https://git-scm.com/downloads)
@@ -21,7 +30,7 @@ Before you begin, make sure you have the following installed on your machine:
 
    ```bash
    git clone -b main --single-branch https://github.com/DrAlzahraniProjects/csusb_fall2024_cse6550_team1.git
-   ```
+
 
 2. **Navigate to the project folder**
 
