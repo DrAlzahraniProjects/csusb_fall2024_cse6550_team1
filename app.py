@@ -12,7 +12,7 @@ def main():
                 st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
         except FileNotFoundError:
             st.error(f"css file '{file_name}' not found.")
-            
+
     # Load the CSS file
     load_css("assets/style.css")
 
@@ -98,6 +98,5 @@ if __name__ == "__main__":
         main()
     else:
         os.environ["STREAMLIT_RUNNING"] = "1"  # Set the environment variable to indicate Streamlit is running
-        subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0"])
-        subprocess.Popen(["service", "nginx", "start"])
+        subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0", "--server.baseUrlPath=/team1"])
         subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root"])
