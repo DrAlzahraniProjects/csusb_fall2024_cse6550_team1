@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import subprocess
 
+
 def main():
     """Main Streamlit app logic."""
     header = st.container()
@@ -12,7 +13,7 @@ def main():
                 st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
         except FileNotFoundError:
             st.error(f"css file '{file_name}' not found.")
-            
+
     # Load the CSS file
     load_css("assets/style.css")
 
@@ -59,8 +60,8 @@ def main():
                     I'm still learning, but I can repeat what you're saying! {message['content']}
                 </div>
             """, unsafe_allow_html=True)
-            # Display like and dislike buttons
-            col1, col2 = st.columns(2)
+            # Display like and dislike buttons with better alignment
+            col1, col2 = st.columns([1, 1])  # Adjust column width for even spacing
             with col1:
                 if st.button("👍 Like", key=f"like_{idx}"):
                     handle_feedback(idx, "like")
@@ -83,7 +84,7 @@ def main():
         """, unsafe_allow_html=True)
 
         # Add like and dislike buttons for the newly generated assistant message
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns([1, 1])  # Adjust column width for even spacing
         with col1:
             if st.button("👍 Like", key=f"like_new"):
                 handle_feedback(len(st.session_state.messages) - 1, "like")
@@ -92,12 +93,12 @@ def main():
                 handle_feedback(len(st.session_state.messages) - 1, "dislike")
 
 
-if __name__ == "__main__":
+if _name_ == "main":
     # If streamlit instance is running
     if os.environ.get("STREAMLIT_RUNNING") == "1":
         main()
     else:
         os.environ["STREAMLIT_RUNNING"] = "1"  # Set the environment variable to indicate Streamlit is running
-        subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0"])
+        subprocess.Popen(["streamlit", "run", file, "--server.port=5001", "--server.address=0.0.0.0"])
         subprocess.Popen(["service", "nginx", "start"])
         subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root"])
