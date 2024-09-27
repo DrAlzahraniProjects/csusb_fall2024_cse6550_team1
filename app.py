@@ -17,6 +17,34 @@ def main():
     # Load the CSS file
     load_css("assets/style.css")
 
+    # Add custom CSS for buttons and alignment
+    st.markdown("""
+        <style>
+        .assistant-message {
+            margin-bottom: 0;
+        }
+        .feedback-buttons {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;  /* Adjust gap between buttons */
+            margin-bottom: 10px;  /* Minimize space between buttons and message */
+        }
+        button[aria-label="👍 Like"], button[aria-label="👎 Dislike"] {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        button[aria-label="👍 Like"]:hover::after, button[aria-label="👎 Dislike"]:hover::after {
+            content: attr(aria-label);
+            font-size: 14px;
+            color: #000;
+            position: absolute;
+            top: 40px; /* Position text below the button */
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
     header.write("""<div class='chat-title'>Team 1 Support Chatbot</div>""", unsafe_allow_html=True)
     header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
 
@@ -60,14 +88,14 @@ def main():
                     I'm still learning, but I can repeat what you're saying! {message['content']}
                 </div>
             """, unsafe_allow_html=True)
-            # Display like and dislike buttons with better alignment
-            col1, col2 = st.columns([1, 1])  # Adjust column width for even spacing
-            with col1:
-                if st.button("👍 Like", key=f"like_{idx}"):
-                    handle_feedback(idx, "like")
-            with col2:
-                if st.button("👎 Dislike", key=f"dislike_{idx}"):
-                    handle_feedback(idx, "dislike")
+
+            # Like and Dislike buttons placed next to each other
+            st.markdown("""
+                <div class='feedback-buttons'>
+                    <button aria-label="👍 Like" onclick="window.location.reload()">👍</button>
+                    <button aria-label="👎 Dislike" onclick="window.location.reload()">👎</button>
+                </div>
+            """, unsafe_allow_html=True)
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
 
@@ -84,13 +112,12 @@ def main():
         """, unsafe_allow_html=True)
 
         # Add like and dislike buttons for the newly generated assistant message
-        col1, col2 = st.columns([1, 1])  # Adjust column width for even spacing
-        with col1:
-            if st.button("👍 Like", key=f"like_new"):
-                handle_feedback(len(st.session_state.messages) - 1, "like")
-        with col2:
-            if st.button("👎 Dislike", key=f"dislike_new"):
-                handle_feedback(len(st.session_state.messages) - 1, "dislike")
+        st.markdown("""
+            <div class='feedback-buttons'>
+                <button aria-label="👍 Like" onclick="window.location.reload()">👍</button>
+                <button aria-label="👎 Dislike" onclick="window.location.reload()">👎</button>
+            </div>
+        """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
@@ -102,3 +129,4 @@ if __name__ == "__main__":
         subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0"])
         subprocess.Popen(["service", "nginx", "start"])
         subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root"])
+
