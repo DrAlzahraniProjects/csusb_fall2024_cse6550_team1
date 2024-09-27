@@ -49,6 +49,9 @@ RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+ENV STREAMLIT_SERVER_BASEURLPATH=/team1
+ENV STREAMLIT_SERVER_PORT=5001
+
 # Streamlit port
 EXPOSE 5001
 # Jupyter Notebook port
