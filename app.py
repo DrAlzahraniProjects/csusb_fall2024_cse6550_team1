@@ -21,13 +21,12 @@ def main():
     st.markdown("""
         <style>
         .assistant-message {
-            margin-bottom: 0;
+            margin-bottom: 0; /* Remove extra space below the message */
         }
         .feedback-buttons {
-            display: flex;
-            justify-content: flex-start;
-            gap: 10px;  /* Adjust gap between buttons */
-            margin-bottom: 10px;  /* Minimize space between buttons and message */
+            display: inline-flex;  /* Make buttons inline */
+            gap: 5px;  /* Reduce gap between buttons */
+            margin-top: 5px;  /* Minimize vertical gap */
         }
         button[aria-label="👍 Like"], button[aria-label="👎 Dislike"] {
             background-color: transparent;
@@ -35,8 +34,15 @@ def main():
             cursor: pointer;
             font-size: 20px;
         }
-        button[aria-label="👍 Like"]:hover::after, button[aria-label="👎 Dislike"]:hover::after {
-            content: attr(aria-label);
+        button[aria-label="👍 Like"]:hover::after {
+            content: 'Like';  /* Display "Like" without emoji on hover */
+            font-size: 14px;
+            color: #000;
+            position: absolute;
+            top: 40px; /* Position text below the button */
+        }
+        button[aria-label="👎 Dislike"]:hover::after {
+            content: 'Dislike';  /* Display "Dislike" without emoji on hover */
             font-size: 14px;
             color: #000;
             position: absolute;
@@ -129,4 +135,5 @@ if __name__ == "__main__":
         subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0"])
         subprocess.Popen(["service", "nginx", "start"])
         subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root"])
+
 
