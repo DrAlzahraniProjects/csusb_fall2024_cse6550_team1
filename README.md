@@ -61,7 +61,7 @@ Before you begin, ensure you have the following installed on your machine:
    Run the Docker container with the following command:
 
    ```bash
-   docker run -d -p 5001:5001 team1_app
+   docker run -d -p 5001:5001 -p 6001:6001 team1_app
    ```
 
 ### Accessing the Application
@@ -69,6 +69,10 @@ Before you begin, ensure you have the following installed on your machine:
 Once the Docker container is running, you can access the IT Support Chatbot through your browser at:
 
 [http://localhost:5001/team1](http://localhost:5001/team1) or [http://127.0.0.1:5001/team1](http://127.0.0.1:5001/team1)
+
+You can access the Jupyter Notebook at: 
+
+[http://localhost:6001](http://localhost:6001) or [http://127.0.0.1:6001](http://127.0.0.1:6001)
 
 ---
 
