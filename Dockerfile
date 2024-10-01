@@ -21,18 +21,18 @@ RUN apt-get update && apt-get install -y \
 # Install Mambaforge for the appropriate architecture
 RUN arch=$(uname -m) && \
 	if [ "${arch}" = "x86_64" ]; then \
-		wget -q "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh" -O mambaforge.sh; \
+		wget -q "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh" -O miniforge.sh; \
 	elif [ "${arch}" = "aarch64" ]; then \
-		wget -q "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-aarch64.sh" -O mambaforge.sh; \
+		wget -q "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-aarch64.sh" -O miniforge.sh; \
 	else \
 		echo "Unsupported architecture: ${arch}"; \
 		exit 1; \
 	fi && \
-	bash mambaforge.sh -b -p /opt/mambaforge && \
-	rm mambaforge.sh
+	bash miniforge.sh -b -p /opt/miniforge && \
+	rm miniforge.sh
 
 # Add Mambaforge to PATH
-ENV PATH=/opt/mambaforge/bin:$PATH
+ENV PATH=/opt/miniforge/bin:$PATH
 
 # Create a new environment with Python 3.10
 RUN mamba create -n team1_env python=3.10 -y
@@ -58,7 +58,7 @@ EXPOSE 5001
 #EXPOSE 6001
 
 # Add the conda environment's bin directory to PATH
-ENV PATH=/opt/mambaforge/envs/team1_env/bin:$PATH
+ENV PATH=/opt/miniforge/envs/team1_env/bin:$PATH
 
 ENTRYPOINT ["python"]
 CMD ["app.py"]
