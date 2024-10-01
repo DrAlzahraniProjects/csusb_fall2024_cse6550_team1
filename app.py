@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import subprocess
 
+
 def main():
     """Main Streamlit app logic."""
     header = st.container()
@@ -15,6 +16,40 @@ def main():
 
     # Load the CSS file
     load_css("assets/style.css")
+
+    # Add custom CSS for buttons and alignment
+    st.markdown("""
+        <style>
+        .assistant-message {
+            margin-bottom: 0; /* Remove extra space below the message */
+        }
+        .feedback-buttons {
+            display: inline-flex;  /* Make buttons inline */
+            gap: 5px;  /* Reduce gap between buttons */
+            margin-top: 5px;  /* Minimize vertical gap */
+        }
+        button[aria-label="👍 Like"], button[aria-label="👎 Dislike"] {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        button[aria-label="👍 Like"]:hover::after {
+            content: 'Like';  /* Display "Like" without emoji on hover */
+            font-size: 14px;
+            color: #000;
+            position: absolute;
+            top: 40px; /* Position text below the button */
+        }
+        button[aria-label="👎 Dislike"]:hover::after {
+            content: 'Dislike';  /* Display "Dislike" without emoji on hover */
+            font-size: 14px;
+            color: #000;
+            position: absolute;
+            top: 40px; /* Position text below the button */
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
     header.write("""<div class='chat-title'>Team 1 Support Chatbot</div>""", unsafe_allow_html=True)
     header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
@@ -59,14 +94,14 @@ def main():
                     I'm still learning, but I can repeat what you're saying! {message['content']}
                 </div>
             """, unsafe_allow_html=True)
-            # Display like and dislike buttons
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("👍 Like", key=f"like_{idx}"):
-                    handle_feedback(idx, "like")
-            with col2:
-                if st.button("👎 Dislike", key=f"dislike_{idx}"):
-                    handle_feedback(idx, "dislike")
+
+            # Like and Dislike buttons placed next to each other
+            st.markdown("""
+                <div class='feedback-buttons'>
+                    <button aria-label="👍 Like" onclick="window.location.reload()">👍</button>
+                    <button aria-label="👎 Dislike" onclick="window.location.reload()">👎</button>
+                </div>
+            """, unsafe_allow_html=True)
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
 
@@ -83,13 +118,12 @@ def main():
         """, unsafe_allow_html=True)
 
         # Add like and dislike buttons for the newly generated assistant message
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("👍 Like", key=f"like_new"):
-                handle_feedback(len(st.session_state.messages) - 1, "like")
-        with col2:
-            if st.button("👎 Dislike", key=f"dislike_new"):
-                handle_feedback(len(st.session_state.messages) - 1, "dislike")
+        st.markdown("""
+            <div class='feedback-buttons'>
+                <button aria-label="👍 Like" onclick="window.location.reload()">👍</button>
+                <button aria-label="👎 Dislike" onclick="window.location.reload()">👎</button>
+            </div>
+        """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
@@ -98,6 +132,6 @@ if __name__ == "__main__":
         main()
     else:
         os.environ["STREAMLIT_RUNNING"] = "1"  # Set the environment variable to indicate Streamlit is running
-		#if multiple processes are being started, you must use Popen followed by run subprocess!
+		    #if multiple processes are being started, you must use Popen followed by run subprocess!
         subprocess.run(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0", "--server.baseUrlPath=/team1"])
         #subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root"])
