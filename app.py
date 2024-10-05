@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import subprocess
+from RAG import *
 
 
 def main():
@@ -91,7 +92,7 @@ def main():
         if message["role"] == "assistant":
             st.markdown(f"""
                 <div class='assistant-message'>
-                    I'm still learning, but I can repeat what you're saying! {message['content']}
+                    {message['content']}
                 </div>
             """, unsafe_allow_html=True)
 
@@ -107,13 +108,14 @@ def main():
 
     # Handle user input
     if prompt := st.chat_input("Message Team1 support chatbot"):
+        answer = RAG_answer(prompt)
         st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.messages.append({"role": "assistant", "content": prompt})
+        st.session_state.messages.append({"role": "assistant", "content": answer})
 
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
         st.markdown(f"""
             <div class='assistant-message'>
-                I'm still learning, but I can repeat what you're saying! {prompt}
+                {answer}
             </div>
         """, unsafe_allow_html=True)
 
@@ -132,6 +134,6 @@ if __name__ == "__main__":
         main()
     else:
         os.environ["STREAMLIT_RUNNING"] = "1"  # Set the environment variable to indicate Streamlit is running
-		    #if multiple processes are being started, you must use Popen followed by run subprocess!
+		#if multiple processes are being started, you must use Popen followed by run subprocess!
         subprocess.run(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0", "--server.baseUrlPath=/team1"])
         #subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root"])
