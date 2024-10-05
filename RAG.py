@@ -94,6 +94,9 @@ def split_documents(documents):
 
 # creates vector store
 def create_vector_store(docs, embeddings, URI):
+    head = os.path.split(URI)
+    os.makedirs(head[0], exist_ok=True)
+
     vector_store = Milvus.from_documents(
         documents=docs,
         embedding=embeddings,
