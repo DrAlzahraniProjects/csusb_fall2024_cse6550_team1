@@ -105,19 +105,26 @@ def main():
             """, unsafe_allow_html=True)
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
-
+            
     # Handle user input
     if prompt := st.chat_input("Message Team1 support chatbot"):
-        answer = RAG_answer(prompt)
+        
         st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
-        st.markdown(f"""
-            <div class='assistant-message'>
-                {answer}
-            </div>
-        """, unsafe_allow_html=True)
+
+        response_placeholder = st.empty()
+
+        with response_placeholder.container():
+            with st.spinner('Generating Response'):
+
+                # generate response from RAG model
+                answer = RAG_answer(prompt)
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+            response_placeholder.markdown(f"""
+                <div class='assistant-message'>
+                    {answer}
+                </div>
+            """, unsafe_allow_html=True)
 
         # Add like and dislike buttons for the newly generated assistant message
         st.markdown("""
