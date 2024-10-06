@@ -79,6 +79,9 @@ def main():
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
+        with st.spinner("Initializing..."):
+            vector_store = initialize_milvus()
+
 
     # Handle feedback for each message
     def handle_feedback(message_index, feedback_type):
