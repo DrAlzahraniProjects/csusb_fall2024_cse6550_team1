@@ -9,29 +9,41 @@ from langchain_milvus import Milvus
 from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains import create_retrieval_chain
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 
 load_dotenv()
-MISTRAL_API_KEY=os.environ.get("MISTRAL_API_KEY")
-COHERE_API_KEY=os.environ.get("COHERE_API_KEY")
+MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
+COHERE_API_KEY = os.environ.get("COHERE_API_KEY")
+
+MILVUS_URI = './milvus/milvus_vector.db'
+MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"
+
+# Get the embedding function
+def get_embedding_function():
+    return HuggingFaceEmbeddings(model_name=MODEL_NAME)
 
 # Main functions, calls all other functions to get an answer
 def RAG_answer(query):
     # Defines Cohere Model (MistralAI would not work with WEB loaded data)
     model = ChatCohere()
+    print("Model Loaded")
 
     prompt = create_prompt()
 
     """
     ideally vector_store shouldn't get initialized everytime the answer is requested, will be changed later
     """
-    vector_store = initialize_milvus()
+
+    vector_store = query_exisiting_db(uri=MILVUS_URI)
 
     retriever = vector_store.as_retriever()
 
     document_chain = create_stuff_documents_chain(model, prompt)
+    print("Document Chain Created")
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
+    print("Retrieval Chain Created")
     repsonse = retrieval_chain.invoke({"input": f"{query}"})
+    print("Response Generated")
 
     return repsonse["answer"]
 
@@ -59,20 +71,24 @@ def create_prompt():
     prompt = PromptTemplate(
         template=PROMPT_TEMPLATE, input_variables=["context", "question"]
     )
+    print("Prompt Created")
 
     return prompt
 
 # Initialize and creates the vector_store through milvus
-def initialize_milvus(model_name: str="sentence-transformers/all-MiniLM-L6-v2", URI: str='./milvus/milvus_vector.db'):
+def initialize_milvus(uri: str=MILVUS_URI):
     # Create the embeddings (THIS METHOD IS DEPRECATED UPDATE TO USE LANGCHAIN-HUGGINGFACE INSTEAD OF LANGCHAIN_COMMUNITY)
     # Look into using a special embedding for COHERE, but for now the 'sentence-transformers/all-MiniLM-L6-v2' works fine
-    embeddings = HuggingFaceEmbeddings(model_name=model_name)
+    embeddings = get_embedding_function()
+    print("Embeddings Loaded")
 
     documents = load_documents_from_web()
+    print("Documents Loaded")
 
     docs = split_documents(documents=documents)
+    print("Documents Splitting completed")
 
-    vector_store = create_vector_store(docs, embeddings, URI)
+    vector_store = create_vector_store(docs, embeddings, uri)
 
     return vector_store
 
@@ -88,24 +104,39 @@ def load_documents_from_web():
 
 # Split doucments into chunks
 def split_documents(documents):
-    text_splitter = RecursiveCharacterTextSplitter()
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500,  # Split the text into chunks of 5000 characters
+        chunk_overlap=200,  # Overlap the chunks by 200 characters
+        is_separator_regex=False,  # Don't split on regex
+    )
     docs = text_splitter.split_documents(documents)
     return docs
 
 # creates vector store
-def create_vector_store(docs, embeddings, URI):
-    head = os.path.split(URI)
+def create_vector_store(docs, embeddings, uri):
+
+    head = os.path.split(uri)
     os.makedirs(head[0], exist_ok=True)
 
     vector_store = Milvus.from_documents(
         documents=docs,
         embedding=embeddings,
         collection_name="IT_support",
-        connection_args={"uri": URI},
+        connection_args={"uri": uri},
         drop_old=True,
     )
-
+    print("Vector Store Created")
     return vector_store
+
+def query_exisiting_db(uri=MILVUS_URI):
+    vector_store = Milvus(
+        collection_name="IT_support",
+        embedding_function = get_embedding_function(),
+        connection_args={"uri": uri},
+    )
+    return vector_store
+
+
 
 if __name__ == '__main__':
     pass
