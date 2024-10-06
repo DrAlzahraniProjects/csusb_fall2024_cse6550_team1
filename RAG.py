@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import PromptTemplate
 #from langchain_mistralai import MistralAIEmbeddings
-#from langchain_mistralai.chat_models import ChatMistralAI
+from langchain_mistralai.chat_models import ChatMistralAI
 from langchain_cohere import ChatCohere
 from langchain_milvus import Milvus
 from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
@@ -25,7 +25,8 @@ def get_embedding_function():
 # Main functions, calls all other functions to get an answer
 def RAG_answer(query):
     # Defines Cohere Model (MistralAI would not work with WEB loaded data)
-    model = ChatCohere()
+    #model = ChatCohere()
+    model = ChatMistralAI(model='open-mistral-7b')
     print("Model Loaded")
 
     prompt = create_prompt()

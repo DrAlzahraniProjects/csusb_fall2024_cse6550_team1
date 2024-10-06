@@ -79,7 +79,7 @@ def main():
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
-        with st.spinner("Initializing..."):
+        with st.spinner("Initializing Milvus, Please Wait..."):
             vector_store = initialize_milvus()
 
 
@@ -111,11 +111,11 @@ def main():
 
     # Handle user input
     if prompt := st.chat_input("Message Team1 support chatbot"):
-        answer = RAG_answer(prompt)
         st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
+
+        answer = RAG_answer(prompt)
+        st.session_state.messages.append({"role": "assistant", "content": answer})
         st.markdown(f"""
             <div class='assistant-message'>
                 {answer}
