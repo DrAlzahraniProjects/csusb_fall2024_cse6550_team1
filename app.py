@@ -79,6 +79,9 @@ def main():
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
+        with st.spinner("Initializing, Please Wait..."):
+            vector_store = initialize_milvus()
+
 
     # Handle feedback for each message
     def handle_feedback(message_index, feedback_type):
@@ -107,8 +110,7 @@ def main():
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
             
     # Handle user input
-    if prompt := st.chat_input("Message Team1 support chatbot"):
-        
+    if prompt := st.chat_input("Message Team1 support chatbot"):      
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
 
@@ -118,7 +120,7 @@ def main():
             with st.spinner('Generating Response'):
 
                 # generate response from RAG model
-                answer = RAG_answer(prompt)
+                answer = query_rag(prompt)
             st.session_state.messages.append({"role": "assistant", "content": answer})
             response_placeholder.markdown(f"""
                 <div class='assistant-message'>
