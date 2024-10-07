@@ -120,7 +120,7 @@ def main():
             with st.spinner('Generating Response'):
 
                 # generate response from RAG model
-                answer = RAG_answer(prompt)
+                answer = query_rag(prompt)
             st.session_state.messages.append({"role": "assistant", "content": answer})
             response_placeholder.markdown(f"""
                 <div class='assistant-message'>
