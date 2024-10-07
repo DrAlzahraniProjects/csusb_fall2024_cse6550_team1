@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import subprocess
+from RAG import *
 
 
 def main():
@@ -78,6 +79,9 @@ def main():
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
+        with st.spinner("Initializing, Please Wait..."):
+            vector_store = initialize_milvus()
+
 
     # Handle feedback for each message
     def handle_feedback(message_index, feedback_type):
@@ -91,7 +95,7 @@ def main():
         if message["role"] == "assistant":
             st.markdown(f"""
                 <div class='assistant-message'>
-                    I'm still learning, but I can repeat what you're saying! {message['content']}
+                    {message['content']}
                 </div>
             """, unsafe_allow_html=True)
 
@@ -104,18 +108,25 @@ def main():
             """, unsafe_allow_html=True)
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
-
+            
     # Handle user input
-    if prompt := st.chat_input("Message Team1 support chatbot"):
+    if prompt := st.chat_input("Message Team1 support chatbot"):      
         st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.messages.append({"role": "assistant", "content": prompt})
-
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
-        st.markdown(f"""
-            <div class='assistant-message'>
-                I'm still learning, but I can repeat what you're saying! {prompt}
-            </div>
-        """, unsafe_allow_html=True)
+
+        response_placeholder = st.empty()
+
+        with response_placeholder.container():
+            with st.spinner('Generating Response'):
+
+                # generate response from RAG model
+                answer = query_rag(prompt)
+            st.session_state.messages.append({"role": "assistant", "content": answer})
+            response_placeholder.markdown(f"""
+                <div class='assistant-message'>
+                    {answer}
+                </div>
+            """, unsafe_allow_html=True)
 
         # Add like and dislike buttons for the newly generated assistant message
         st.markdown("""
@@ -132,6 +143,6 @@ if __name__ == "__main__":
         main()
     else:
         os.environ["STREAMLIT_RUNNING"] = "1"  # Set the environment variable to indicate Streamlit is running
-		    #if multiple processes are being started, you must use Popen followed by run subprocess!
+		#if multiple processes are being started, you must use Popen followed by run subprocess!
         subprocess.run(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0", "--server.baseUrlPath=/team1"])
         #subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root"])
