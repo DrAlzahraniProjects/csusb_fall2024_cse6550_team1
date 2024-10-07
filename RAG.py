@@ -10,6 +10,7 @@ from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoad
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains import create_retrieval_chain
 from langchain_huggingface import HuggingFaceEmbeddings
+from pymilvus import connections, utility
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
@@ -35,14 +36,16 @@ def RAG_answer(query):
     ideally vector_store shouldn't get initialized everytime the answer is requested, will be changed later
     """
 
-    vector_store = query_exisiting_db(uri=MILVUS_URI)
+    vector_store = load_exisiting_db(uri=MILVUS_URI)
 
     retriever = vector_store.as_retriever()
 
     document_chain = create_stuff_documents_chain(model, prompt)
     print("Document Chain Created")
+
     retrieval_chain = create_retrieval_chain(retriever, document_chain)
     print("Retrieval Chain Created")
+    
     repsonse = retrieval_chain.invoke({"input": f"{query}"})
     print("Response Generated")
 
@@ -106,8 +109,8 @@ def load_documents_from_web():
 # Split doucments into chunks
 def split_documents(documents):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,  # Split the text into chunks of 5000 characters
-        chunk_overlap=200,  # Overlap the chunks by 200 characters
+        chunk_size=1000,  # Split the text into chunks of 1000 characters
+        chunk_overlap=300,  # Overlap the chunks by 300 characters
         is_separator_regex=False,  # Don't split on regex
     )
     docs = text_splitter.split_documents(documents)
@@ -119,22 +122,37 @@ def create_vector_store(docs, embeddings, uri):
     head = os.path.split(uri)
     os.makedirs(head[0], exist_ok=True)
 
-    vector_store = Milvus.from_documents(
-        documents=docs,
-        embedding=embeddings,
-        collection_name="IT_support",
-        connection_args={"uri": uri},
-        drop_old=True,
-    )
-    print("Vector Store Created")
+    connections.connect("default",uri=uri)
+
+    # Check if the collection already exists
+    if utility.has_collection("IT_support"):
+        print("Collection already exists. Loading existing Vector Store.")
+        # loading the existing vector store
+        vector_store = Milvus(
+            collection_name="IT_support",
+            embedding_function=get_embedding_function(),
+            connection_args={"uri": uri}
+        )
+    else:
+        # Create a new vector store and drop any existing one
+        vector_store = Milvus.from_documents(
+            documents=docs,
+            embedding=embeddings,
+            collection_name="IT_support",
+            connection_args={"uri": uri},
+            drop_old=True,
+        )
+        print("Vector Store Created")
     return vector_store
 
-def query_exisiting_db(uri=MILVUS_URI):
+def load_exisiting_db(uri=MILVUS_URI):
+    # Load an existing vector store
     vector_store = Milvus(
         collection_name="IT_support",
         embedding_function = get_embedding_function(),
         connection_args={"uri": uri},
     )
+    print("Vector Store Loaded")
     return vector_store
 
 
