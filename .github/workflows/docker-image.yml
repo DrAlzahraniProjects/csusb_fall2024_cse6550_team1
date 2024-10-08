@@ -3,7 +3,7 @@ name: ci
 on:
   push:
     branches: [ "Docker-workflow-with-actions" ]
-  pull-request:
+  pull_request:
     branches: [ "Docker-workflow-with-actions" ]
 
 jobs:
