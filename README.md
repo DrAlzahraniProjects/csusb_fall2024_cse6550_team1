@@ -30,7 +30,7 @@ Before you begin, ensure you have the following installed on your machine:
 
    ```bash
    git clone -b main --single-branch https://github.com/DrAlzahraniProjects/csusb_fall2024_cse6550_team1.git
-
+   ```
 
 2. **Navigate to the project folder**
 
