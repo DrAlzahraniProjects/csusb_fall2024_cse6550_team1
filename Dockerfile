@@ -1,7 +1,7 @@
 # Use Python as the base image
 FROM python:3.10-slim
 
-RUN --mount=type=secret,id=mistral_api,env=MISTRAL_API_KEY
+RUN --mount=type=secret,id=mistral_api_key,env=MISTRAL_API_KEY
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
