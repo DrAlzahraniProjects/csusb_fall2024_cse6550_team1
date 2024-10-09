@@ -15,7 +15,6 @@ from pymilvus import connections, utility
 #load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 COHERE_API_KEY = os.environ.get("COHERE_API_KEY")
-print(os.environ.get["MISTRAL_API_KEY"])
 print(MISTRAL_API_KEY)
 
 MILVUS_URI = "./milvus/milvus_vector.db"
