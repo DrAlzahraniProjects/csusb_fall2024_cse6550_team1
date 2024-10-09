@@ -17,7 +17,7 @@ jobs:
         name: Login to Docker Hub
         uses: docker/login-action@v3.3.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Set up Docker Buildx
@@ -29,4 +29,5 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: notmik/team1_app:latest
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/team1_app:latest
+          secrets: "mistral_api_key=${{ secrets.MISTRAL_API_KEY }}"

@@ -63,5 +63,7 @@ EXPOSE 5001
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/miniforge/envs/team1_env/bin:$PATH
 
+RUN --mount=type=secret,id=mistral_api_key,env=MISTRAL_API_KEY
+
 ENTRYPOINT ["python"]
 CMD ["app.py"]
