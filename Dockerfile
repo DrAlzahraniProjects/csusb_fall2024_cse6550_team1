@@ -1,8 +1,8 @@
 # Use Python as the base image
 FROM python:3.10-slim
 
-#RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
-#	export MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)
+RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
+	export MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
