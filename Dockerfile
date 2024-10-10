@@ -11,6 +11,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Set the working directory in the container
 WORKDIR /app
 
+# Import secret as ENV and save to .ENV file
+RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
+	echo "MISTRAL_API_KEY=${MISTRAL_API_KEY}" > /app/.env
+
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \
 	wget \
@@ -52,6 +56,7 @@ RUN pip install -qU langchain_milvus langchain-cohere
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+# Set the StreamLit ENV for configuration
 ENV STREAMLIT_SERVER_BASEURLPATH=/team1
 ENV STREAMLIT_SERVER_PORT=5001
 
