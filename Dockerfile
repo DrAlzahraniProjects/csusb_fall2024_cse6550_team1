@@ -15,6 +15,7 @@ WORKDIR /app
 RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY
 
 ENV MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)
+RUN echo "MISTRAL API: $MISTRAL_API_KEY"
 
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \
