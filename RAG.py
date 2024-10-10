@@ -21,7 +21,6 @@ if MISTRAL_API_KEY is None:
 MILVUS_URI = "./milvus/milvus_vector.db"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 
-
 def get_embedding_function():
     """
     returns embedding function for the model

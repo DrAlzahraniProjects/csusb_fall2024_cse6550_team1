@@ -12,8 +12,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 
 # Import the secret as ENV and save to .ENV file
-RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
-	export MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY) > .env
+RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY
+
+ENV MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)
 
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \
