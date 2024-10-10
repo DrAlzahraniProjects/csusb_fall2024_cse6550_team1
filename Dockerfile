@@ -11,6 +11,12 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Set the working directory in the container
 WORKDIR /app
 
+# Import the secret as ENV and save to .ENV file
+RUN --mount=type=secret,id=MISTRAL_API_KEY \
+	touch /app/.env \
+	&& sed -i "s/MISTRAL_API_KEY=/MISTRAL_API_KEY=TEST/" /app/.env
+	#$(cat /run/secrets/MISTRAL_API_KEY)
+
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \
 	wget \
@@ -62,17 +68,6 @@ EXPOSE 5001
 
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/miniforge/envs/team1_env/bin:$PATH
-
-SHELL ["bin/sh -c"]
-
-# Import the secret as ENV and save to .ENV file
-RUN --mount=type=secret,id=MISTRAL_API_KEY \
-	touch .env \
-	&& sed -i "s/MISTRAL_API_KEY=/MISTRAL_API_KEY=TEST/" .env
-	#$(cat /run/secrets/MISTRAL_API_KEY)
-
-# Activate the new environment
-SHELL ["mamba", "run", "-n", "team1_env", "/bin/bash", "-c"]
 
 ENTRYPOINT ["python"]
 CMD ["app.py"]
