@@ -12,7 +12,7 @@ from langchain.chains import create_retrieval_chain
 from langchain_huggingface import HuggingFaceEmbeddings
 from pymilvus import connections, utility
 
-#load_dotenv()
+load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 print(MISTRAL_API_KEY)
 if MISTRAL_API_KEY is None:

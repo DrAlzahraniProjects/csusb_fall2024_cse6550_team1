@@ -65,7 +65,7 @@ ENV PATH=/opt/miniforge/envs/team1_env/bin:$PATH
 
 # Import the secret as ENV and save to .ENV file
 RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
-	echo "MISTRAL API=$MISTRAL_API_KEY"
+	sed -i "s/MISTRAL_API_KEY=/MISTRAL_API_KEY=$(cat /run/secrets/mistral_api_key)/" .env
 
 ENTRYPOINT ["python"]
 CMD ["app.py"]
