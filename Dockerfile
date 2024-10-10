@@ -2,7 +2,8 @@
 FROM python:3.10-slim
 
 RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
-	export MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)
+	export MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY) \
+	echo "MISTRAL_API_KEY=$MISTRAL_API_KEY" >> /app/.env
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
