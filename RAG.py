@@ -15,6 +15,7 @@ from pymilvus import connections, utility
 #load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 COHERE_API_KEY = os.environ.get("COHERE_API_KEY")
+print(os.environ["MISTRAL_API_KEY"])
 print(os.environ.get("mistral_api_key"))
 print(os.getenv("MISTRAL_API_KEY"))
 
