@@ -12,7 +12,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 
 # Import the secret as ENV and save to .ENV file
-RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
+RUN --mount=type=secret,id=MISTRAL_API_KEY \
 	sed -i "s/MISTRAL_API_KEY=/MISTRAL_API_KEY=$(cat /run/secrets/mistral_api_key)/" .env
 
 # Update and install necessary packages
