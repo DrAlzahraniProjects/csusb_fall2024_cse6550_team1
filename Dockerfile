@@ -11,11 +11,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Set the working directory in the container
 WORKDIR /app
 
-# Import the secret as ENV and save to .ENV file
-RUN --mount=type=secret,id=MISTRAL_API_KEY \
-	touch .env \
-	&& sed -i "s/MISTRAL_API_KEY=/MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)/" .env
-
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \
 	wget \
@@ -42,9 +37,6 @@ ENV PATH=/opt/miniforge/bin:$PATH
 # Create a new environment with Python 3.10
 RUN mamba create -n team1_env python=3.10 -y
 
-# Activate the new environment
-SHELL ["mamba", "run", "-n", "team1_env", "/bin/bash", "-c"]
-
 # Copy requirements.txt into the container
 COPY requirements.txt /app/requirements.txt
 
@@ -67,6 +59,15 @@ EXPOSE 5001
 
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/miniforge/envs/team1_env/bin:$PATH
+
+# Import the secret as ENV and save to .ENV file
+RUN --mount=type=secret,id=MISTRAL_API_KEY \
+	touch .env \
+	&& sed -i "s/MISTRAL_API_KEY=/MISTRAL_API_KEY=TEST/" .env
+	#$(cat /run/secrets/MISTRAL_API_KEY)
+
+# Activate the new environment
+SHELL ["mamba", "run", "-n", "team1_env", "/bin/bash", "-c"]
 
 ENTRYPOINT ["python"]
 CMD ["app.py"]
