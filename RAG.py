@@ -4,7 +4,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import PromptTemplate
 #from langchain_mistralai import MistralAIEmbeddings
 from langchain_mistralai.chat_models import ChatMistralAI
-from langchain_cohere import ChatCohere
+#from langchain_cohere import ChatCohere
 from langchain_milvus import Milvus
 from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -14,15 +14,9 @@ from pymilvus import connections, utility
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
-COHERE_API_KEY = os.environ.get("COHERE_API_KEY")
 print(MISTRAL_API_KEY)
 if MISTRAL_API_KEY is None:
-    try:
-        with open("../run/secrets/MISTRAL_API_KEY") as f:
-            for l in f:
-                print(l, " from secrets")
-    except OSError:
-        print("No Mistral API key found")
+    print("No Mistral API key found")
 
 MILVUS_URI = "./milvus/milvus_vector.db"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
