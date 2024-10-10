@@ -63,7 +63,7 @@ EXPOSE 5001
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/miniforge/envs/team1_env/bin:$PATH
 
-SHELL ["bin/sh"]
+SHELL ["bin/bash -c"]
 
 # Import the secret as ENV and save to .ENV file
 RUN --mount=type=secret,id=MISTRAL_API_KEY \
