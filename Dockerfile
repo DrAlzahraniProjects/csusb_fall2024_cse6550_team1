@@ -13,6 +13,7 @@ WORKDIR /app
 
 # Import the secret as ENV and save to .ENV file
 RUN --mount=type=secret,id=MISTRAL_API_KEY \
+	touch .env \
 	sed -i "s/MISTRAL_API_KEY=/MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)/" .env
 
 # Update and install necessary packages
