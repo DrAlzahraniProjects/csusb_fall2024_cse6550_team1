@@ -22,7 +22,27 @@ Before you begin, ensure you have the following installed on your machine:
 - [Docker](https://www.docker.com/get-started)
 - [Git](https://git-scm.com/downloads)
 
-### Installation
+## Installation Guides
+
+### Running from DockerHub
+
+1. **Pull the DockerHub repository**
+
+   Pull the repository from DockerHub latest:
+
+   ```
+   docker pull notmik/team1_app:latest
+   ```
+
+2. **Run the Docker container**
+
+   Run the Docker container pulled from notmik/team1_app:latest
+
+   ```
+   docker run -d -p 5001:5001 notmik/team1_app
+   ```
+
+### Building and Running from Source Code
 
 1. **Clone the repository**
 
@@ -30,7 +50,7 @@ Before you begin, ensure you have the following installed on your machine:
 
    ```bash
    git clone -b main --single-branch https://github.com/DrAlzahraniProjects/csusb_fall2024_cse6550_team1.git
-
+   ```
 
 2. **Navigate to the project folder**
 
