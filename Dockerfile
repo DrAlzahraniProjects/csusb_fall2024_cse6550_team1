@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y \
 	wget \
 	bzip2 \
 	ca-certificates \
+	build-essential \
+    	python3-dev \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Install Mambaforge for the appropriate architecture
@@ -47,7 +49,8 @@ COPY requirements.txt /app/requirements.txt
 RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 
 # Install Python packages not on Mamba DB
-RUN pip install -qU langchain_milvus langchain-cohere
+RUN pip install -qU cython
+RUN pip install -qU langchain_milvus langchain-cohere nemo-curator nemoguardrails
 
 # Copy the current directory contents into the container at /app
 COPY . /app
