@@ -8,17 +8,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
+ARG DOCKER_BUILD_VIA_WORKFLOW="false"
+
 # Set the working directory in the container
 WORKDIR /app
 
-# Import secret as ENV and save to .ENV file
-# If build from source code ignore
-RUN if [ "$DOCKER_BUILD_VIA_WORKFLOW" = true] ; then \
-		--mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
-		echo "MISTRAL_API_KEY=${MISTRAL_API_KEY}" > /app/.env ; \
-	else \
-		echo "Please include your own API key in .env" ; \
-	fi
+# Import secret and save to .ENV file
+RUN --mount=type=secret,id=MISTRAL_API_KEY \
+		echo "MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)" > /app/.env
 
 # Import secret as ENV and save to .ENV file
 #RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY || true \
