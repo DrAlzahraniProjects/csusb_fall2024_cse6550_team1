@@ -12,8 +12,17 @@ ENV PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 
 # Import secret as ENV and save to .ENV file
-RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
-	echo "MISTRAL_API_KEY=${MISTRAL_API_KEY}" > /app/.env
+# If build from source code ignore
+RUN if [ "$DOCKER_BUILD_VIA_WORKFLOW" = true] ; then \
+		--mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY \
+		echo "MISTRAL_API_KEY=${MISTRAL_API_KEY}" > /app/.env ; \
+	else \
+		echo "Please include your own API key in .env" ; \
+	fi
+
+# Import secret as ENV and save to .ENV file
+#RUN --mount=type=secret,id=MISTRAL_API_KEY,env=MISTRAL_API_KEY || true \
+#	echo "MISTRAL_API_KEY=${MISTRAL_API_KEY}" > /app/.env
 
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \
