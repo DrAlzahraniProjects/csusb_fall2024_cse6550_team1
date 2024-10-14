@@ -3,11 +3,10 @@ name: ci
 on:
   push:
     branches:
-      - Github-workflow-for-API
+      - Docker-mount-fix
       - main
   pull_request:
     branches:
-      - Github-workflow-for-API
       - main
 
 jobs:
