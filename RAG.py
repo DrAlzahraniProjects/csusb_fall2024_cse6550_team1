@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.schema import Document
 from langchain_core.prompts import PromptTemplate
 #from langchain_mistralai import MistralAIEmbeddings
 from langchain_mistralai.chat_models import ChatMistralAI
@@ -63,7 +64,7 @@ def query_rag(query):
     repsonse = retrieval_chain.invoke({"input": f"{query}"})
     print("Response Generated")
 
-    return repsonse["answer"]
+    return repsonse["answer"], repsonse["context"][0].metadata["source"]
 
 
 def create_prompt():

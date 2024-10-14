@@ -98,7 +98,8 @@ def main():
                     {message['content']}
                 </div>
             """, unsafe_allow_html=True)
-
+            # Display the source of the message in blue
+            st.caption(f":blue[{message['source']}]")
             # Like and Dislike buttons placed next to each other
             st.markdown("""
                 <div class='feedback-buttons'>
@@ -120,13 +121,14 @@ def main():
             with st.spinner('Generating Response'):
 
                 # generate response from RAG model
-                answer = query_rag(prompt)
-            st.session_state.messages.append({"role": "assistant", "content": answer})
+                answer, source = query_rag(prompt)
+            st.session_state.messages.append({"role": "assistant", "content": answer, "source": source})
             response_placeholder.markdown(f"""
                 <div class='assistant-message'>
                     {answer}
                 </div>
             """, unsafe_allow_html=True)
+        st.caption(f":blue[{source}]")
 
         # Add like and dislike buttons for the newly generated assistant message
         st.markdown("""
