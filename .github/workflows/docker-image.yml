@@ -3,10 +3,6 @@ name: ci
 on:
   push:
     branches:
-      - Docker-mount-fix
-      - main
-  pull_request:
-    branches:
       - main
 
 jobs:
