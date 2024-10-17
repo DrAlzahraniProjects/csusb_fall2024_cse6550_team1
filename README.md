@@ -72,7 +72,7 @@ Once the Docker container is running, you can access the IT Support Chatbot thro
 
 You can access the Jupyter Notebook at: 
 
-[http://localhost:6001](http://localhost:6001) or [http://127.0.0.1:6001](http://127.0.0.1:6001)
+[http://localhost:juypter](http://localhost:6001) or [http://127.0.0.1/juypter](http://127.0.0.1:6001)
 
 ---
 
