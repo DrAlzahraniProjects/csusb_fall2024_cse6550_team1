@@ -90,6 +90,10 @@ Once the Docker container is running, you can access the IT Support Chatbot thro
 
 [http://localhost:5001/team1](http://localhost:5001/team1) or [http://127.0.0.1:5001/team1](http://127.0.0.1:5001/team1)
 
+You can access the Jupyter Notebook at:
+
+[http://localhost:6001/jupyter](http://localhost:6001/jupyter) or [http://127.0.0.1:6001/jupyter](http://127.0.0.1:6001/jupyter)
+
 ---
 
 ### Troubleshooting
