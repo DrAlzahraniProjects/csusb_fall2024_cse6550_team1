@@ -66,7 +66,15 @@ ENV STREAMLIT_SERVER_PORT=5001
 # Streamlit port
 EXPOSE 5001
 # Jupyter Notebook port
-#EXPOSE 6001
+EXPOSE 6001
+
+# Create a Jupyter config file to disable token authentication
+RUN jupyter notebook --generate-config && \
+    echo "c.NotebookApp.token = ''" >> /root/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.password = ''" >> /root/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.ip = '0.0.0.0'" >> /root/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.port = 6001" >> /root/.jupyter/jupyter_notebook_config.py && \
+    echo "c.NotebookApp.open_browser = False" >> /root/.jupyter/jupyter_notebook_config.py
 
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/miniforge/envs/team1_env/bin:$PATH
