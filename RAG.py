@@ -125,6 +125,7 @@ def initialize_milvus(uri: str=MILVUS_URI):
     return vector_store
 
 
+
 def load_documents_from_web():
     """
     Load the documents from the web and store the page contents
@@ -132,14 +133,22 @@ def load_documents_from_web():
     Returns:
         list: The documents loaded from the web
     """
-    loader = WebBaseLoader(web_paths=
-        ["https://www.csusb.edu/its/" #, add more webpages in the future 
-        ],
-        )
+    loader = WebBaseLoader(web_paths=[
+        "https://www.csusb.edu/its/",
+        "https://www.csusb.edu/its/support/resource-guides",
+        "https://www.csusb.edu/its/support/staff-resources-telecommuting",
+        "https://www.csusb.edu/its/software/student-software",
+        "https://www.csusb.edu/its/support/technology-support/wireless-network-wifi-access-csusb",
+        "https://www.csusb.edu/ats",
+        "https://www.csusb.edu/its/security",
+        "https://www.csusb.edu/its/support/technology-support",
+        "https://www.csusb.edu/its/departments/strategic-technology-initiatives"
+        # You can add more webpages in the future here by simply adding to this list
+    ])
+
     documents = loader.load()
     
     return documents
-
 
 def split_documents(documents):
     """
