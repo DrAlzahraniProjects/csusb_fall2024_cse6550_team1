@@ -91,35 +91,35 @@ def main():
 
 
     # Handle feedback for each message
-    def handle_feedback(id):
+    def handle_feedback(assistant_message_id):
         """
         Handle feedback for a message.
 
         Args:
             id (str): The unique ID of the message
         """
-        feedback = st.session_state.get(f"feedback_{id}", None)
+        feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
         if feedback == 1:
-            st.session_state.messages[f"assistant_message_{id}"]["feedback"] = "like"
+            st.session_state.messages[assistant_message_id]["feedback"] = "like"
         elif feedback == 0:
-            st.session_state.messages[f"assistant_message_{id}"]["feedback"] = "dislike"
+            st.session_state.messages[assistant_message_id]["feedback"] = "dislike"
         else:
-            st.session_state.messages[f"assistant_message_{id}"]["feedback"] = None
+            st.session_state.messages[assistant_message_id]["feedback"] = None
 
     # Render existing messages
-    for id, message in st.session_state.messages.items():
+    for message_id, message in st.session_state.messages.items():
         if message["role"] == "assistant":
             st.markdown(f"""
                 <div class='assistant-message'>
                     {message['content']}
                 </div>
             """, unsafe_allow_html=True)
-            # Display the source of the message in blue
-            st.caption(f":blue[{message['source']}]")
+            # # Display the source of the message in blue
+            # st.caption(f":blue[{message['source']}]")
             st.feedback(
                 "thumbs",
-                key = f"feedback_{id}",
-                on_change= handle_feedback(id),
+                key = "feedback_{message_id}",
+                on_change= handle_feedback(message_id),
             )
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
@@ -130,9 +130,9 @@ def main():
         # creating user_message_id and assistant_message_id with the same unique "id" because 
         # in future when we implement feedback related changes on backend side,
         # we can use this "id" to know which question/response it belongs to
-        id = str(uuid4())
-        user_message_id = f"user_message_{id}"
-        assistant_message_id = f"assistant_message_{id}"
+        unique_id = str(uuid4())
+        user_message_id = f"user_message_{unique_id}"
+        assistant_message_id = f"assistant_message_{unique_id}"
 
         st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}    
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
@@ -143,20 +143,21 @@ def main():
             with st.spinner('Generating Response...'):
 
                 # generate response from RAG model
-                answer, source = query_rag(prompt)
-            st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
+                answer, sources = query_rag(prompt)
+            st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
             response_placeholder.markdown(f"""
                 <div class='assistant-message'>
                     {answer}
                 </div>
             """, unsafe_allow_html=True)
-        st.caption(f":blue[{source}]")
+
+        # st.caption(f":blue[{source}]")
 
         # Feedback Buttons
         st.feedback(
                 "thumbs",
-                key = f"feedback_{id}",
-                on_change= handle_feedback(id),
+                key = f"feedback_{assistant_message_id}",
+                on_change= handle_feedback(assistant_message_id),
         )
 
 if __name__ == "__main__":
