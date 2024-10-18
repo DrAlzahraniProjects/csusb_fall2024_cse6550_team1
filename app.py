@@ -5,17 +5,17 @@ import subprocess
 from RAG import *
 
 def load_css(file_name):
-        """
-        Load a CSS file to style the app.
+    """
+    Load a CSS file to style the app.
 
-        Args:
-            file_name (str): css file path
-        """
-        try:
-            with open(file_name) as f:
-                st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-        except FileNotFoundError:
-            st.error(f"css file '{file_name}' not found.")
+    Args:
+        file_name (str): css file path
+    """
+    try:
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.error(f"css file '{file_name}' not found.")
 
 def handle_feedback(assistant_message_id):
     """
@@ -106,20 +106,6 @@ def main():
                 # generate response from RAG model
                 answer, sources = query_rag(prompt)
             st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
-            # response_placeholder.markdown(f"""
-            #     <div class='assistant-message'>
-            #         {answer}
-            #     </div>
-            # """, unsafe_allow_html=True)
-
-        # st.caption(f":blue[{source}]")
-
-        # Feedback Buttons
-        # st.feedback(
-        #         "thumbs",
-        #         key = f"feedback_{assistant_message_id}",
-        #         on_change= handle_feedback(assistant_message_id),
-        # )
         st.rerun()
 
 if __name__ == "__main__":
