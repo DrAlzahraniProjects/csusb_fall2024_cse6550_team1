@@ -61,10 +61,25 @@ def query_rag(query):
     print("Retrieval Chain Created")
 
     # Generate a response to the query
-    repsonse = retrieval_chain.invoke({"input": f"{query}"})
+    response = retrieval_chain.invoke({"input": f"{query}"})
+    
+    # logic to add sources to the response
+    all_sources = ""
+    source_list = []
+    count = 1
+    for i in response["context"]:
+        # limiting the no.of sources to 4 for better readability
+        if count > 4:
+            break
+        else:
+            source = i.metadata["source"]
+            source_list.append(source)
+            all_sources += f":blue[Source {count}]({source}), "
+            count += 1
+    all_sources = all_sources[:-2]
+    response["answer"] += f"\n\nSources: {all_sources}"
     print("Response Generated")
-
-    return repsonse["answer"], repsonse["context"][0].metadata["source"]
+    return response["answer"], source_list
 
 
 def create_prompt():
