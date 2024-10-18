@@ -10,6 +10,12 @@ def main():
     header = st.container()
 
     def load_css(file_name):
+        """
+        Load a CSS file to style the app.
+
+        Args:
+            file_name (str): css file path
+        """
         try:
             with open(file_name) as f:
                 st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
@@ -86,6 +92,12 @@ def main():
 
     # Handle feedback for each message
     def handle_feedback(id):
+        """
+        Handle feedback for a message.
+
+        Args:
+            id (str): The unique ID of the message
+        """
         feedback = st.session_state.get(f"feedback_{id}", None)
         if feedback == 1:
             st.session_state.messages[f"assistant_message_{id}"]["feedback"] = "like"
@@ -111,38 +123,18 @@ def main():
             )
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
-    # # Render existing messages
-    # for idx, message in enumerate(st.session_state.messages):
-    #     if message["role"] == "assistant":
-    #         st.markdown(f"""
-    #             <div class='assistant-message'>
-    #                 {message['content']}
-    #             </div>
-    #         """, unsafe_allow_html=True)
-    #         # Display the source of the message in blue
-    #         st.caption(f":blue[{message['source']}]")
-    #         # Like and Dislike buttons placed next to each other
-    #         st.markdown("""
-    #             <div class='feedback-buttons'>
-    #                 <button aria-label="👍 Like" onclick="window.location.reload()">👍</button>
-    #                 <button aria-label="👎 Dislike" onclick="window.location.reload()">👎</button>
-    #             </div>
-    #         """, unsafe_allow_html=True)
-    #     else:
-    #         st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
             
     # Handle user input
     if prompt := st.chat_input("Message Team1 support chatbot"):
         
-        # creating question_id and response_id with the same unique "id" because 
+        # creating user_message_id and assistant_message_id with the same unique "id" because 
         # in future when we implement feedback related changes on backend side,
         # we can use this "id" to know which question/response it belongs to
-        id = uuid4()
+        id = str(uuid4())
         user_message_id = f"user_message_{id}"
         assistant_message_id = f"assistant_message_{id}"
 
         st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}    
-        # st.session_state.messages.append({"role": "user", "content": prompt})
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
 
         response_placeholder = st.empty()
@@ -153,29 +145,19 @@ def main():
                 # generate response from RAG model
                 answer, source = query_rag(prompt)
             st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
-            # st.session_state.messages.append({"role": "assistant", "content": answer, "source": source})
             response_placeholder.markdown(f"""
                 <div class='assistant-message'>
                     {answer}
                 </div>
             """, unsafe_allow_html=True)
         st.caption(f":blue[{source}]")
-        
+
         # Feedback Buttons
         st.feedback(
                 "thumbs",
                 key = f"feedback_{id}",
                 on_change= handle_feedback(id),
         )
-
-        # # Add like and dislike buttons for the newly generated assistant message
-        # st.markdown("""
-        #     <div class='feedback-buttons'>
-        #         <button aria-label="👍 Like" onclick="window.location.reload()">👍</button>
-        #         <button aria-label="👎 Dislike" onclick="window.location.reload()">👎</button>
-        #     </div>
-        # """, unsafe_allow_html=True)
-
 
 if __name__ == "__main__":
     # If streamlit instance is running
