@@ -65,7 +65,7 @@ def query_rag(query):
     
     # logic to add sources to the response
     all_sources = ""
-    source_list = []
+    sources = set()
     count = 1
     for i in response["context"]:
         # limiting the no.of sources to 4 for better readability
@@ -73,13 +73,15 @@ def query_rag(query):
             break
         else:
             source = i.metadata["source"]
-            source_list.append(source)
-            all_sources += f":blue[Source {count}]({source}), "
+            if source in sources:
+                continue
+            sources.add(source)
+            all_sources += f"[Source {count}]({source}), "
             count += 1
     all_sources = all_sources[:-2]
     response["answer"] += f"\n\nSources: {all_sources}"
     print("Response Generated")
-    return response["answer"], source_list
+    return response["answer"], list(sources)
 
 
 def create_prompt():
