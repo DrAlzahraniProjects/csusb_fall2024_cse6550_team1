@@ -73,11 +73,11 @@ def query_rag(query):
             break
         else:
             source = i.metadata["source"]
+            count += 1
             if source in sources:
                 continue
             sources.add(source)
             all_sources += f"[Source {count}]({source}), "
-            count += 1
     all_sources = all_sources[:-2]
     response["answer"] += f"\n\nSources: {all_sources}"
     print("Response Generated")
