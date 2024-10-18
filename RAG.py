@@ -12,6 +12,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains import create_retrieval_chain
 from langchain_huggingface import HuggingFaceEmbeddings
 from pymilvus import connections, utility
+from requests.exceptions import HTTPError
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
@@ -44,45 +45,51 @@ def query_rag(query):
     Returns:
         str: The answer to the query
     """
-    # Define the model
-    model = ChatMistralAI(model='open-mistral-7b')
-    print("Model Loaded")
+    try:
+        # Define the model
+        model = ChatMistralAI(model='open-mistral-7b')
+        print("Model Loaded")
 
-    prompt = create_prompt()
+        prompt = create_prompt()
 
-    # Load the vector store and create the retriever
-    vector_store = load_exisiting_db(uri=MILVUS_URI)
-    retriever = vector_store.as_retriever()
+        # Load the vector store and create the retriever
+        vector_store = load_exisiting_db(uri=MILVUS_URI)
+        retriever = vector_store.as_retriever()
 
-    document_chain = create_stuff_documents_chain(model, prompt)
-    print("Document Chain Created")
+        document_chain = create_stuff_documents_chain(model, prompt)
+        print("Document Chain Created")
 
-    retrieval_chain = create_retrieval_chain(retriever, document_chain)
-    print("Retrieval Chain Created")
+        retrieval_chain = create_retrieval_chain(retriever, document_chain)
+        print("Retrieval Chain Created")
 
-    # Generate a response to the query
-    response = retrieval_chain.invoke({"input": f"{query}"})
-    
-    # logic to add sources to the response
-    all_sources = ""
-    sources = set()
-    count = 1
-    for i in response["context"]:
-        # limiting the no.of sources to 4 for better readability
-        if count > 4:
-            break
-        else:
-            source = i.metadata["source"]
-            if source in sources:
+        # Generate a response to the query
+        response = retrieval_chain.invoke({"input": f"{query}"})
+        
+        # logic to add sources to the response
+        all_sources = ""
+        sources = set()
+        count = 1
+        for i in response["context"]:
+            # limiting the no.of sources to 4 for better readability
+            if count > 4:
+                break
+            else:
+                source = i.metadata["source"]
+                if source in sources:
+                    count += 1
+                    continue
+                sources.add(source)
+                all_sources += f"[Source {count}]({source}), "
                 count += 1
-                continue
-            sources.add(source)
-            all_sources += f"[Source {count}]({source}), "
-            count += 1
-    all_sources = all_sources[:-2]
-    response["answer"] += f"\n\nSources: {all_sources}"
-    print("Response Generated")
-    return response["answer"], list(sources)
+        all_sources = all_sources[:-2]
+        response["answer"] += f"\n\nSources: {all_sources}"
+        print("Response Generated")
+        return response["answer"], list(sources)
+    except HTTPError as e:
+        print(f"HTTPError: {e}")
+        if e.response.status_code == 429:
+            return "I am currently experiencing high traffic. Please try again later.", []
+        return "I am unable to answer this question at the moment. Please try again later.", []
 
 
 def create_prompt():

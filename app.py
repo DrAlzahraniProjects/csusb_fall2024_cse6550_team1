@@ -102,10 +102,12 @@ def main():
 
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
-
                 # generate response from RAG model
                 answer, sources = query_rag(prompt)
-            st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
+                if sources == []:
+                    st.error(f"{answer}")
+                else:
+                    st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
         st.rerun()
 
 if __name__ == "__main__":
