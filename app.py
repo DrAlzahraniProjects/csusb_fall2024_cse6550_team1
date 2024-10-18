@@ -4,12 +4,7 @@ import os
 import subprocess
 from RAG import *
 
-
-def main():
-    """Main Streamlit app logic."""
-    header = st.container()
-
-    def load_css(file_name):
+def load_css(file_name):
         """
         Load a CSS file to style the app.
 
@@ -22,45 +17,31 @@ def main():
         except FileNotFoundError:
             st.error(f"css file '{file_name}' not found.")
 
-    # Load the CSS file
-    load_css("assets/style.css")
+def handle_feedback(assistant_message_id):
+    """
+    Handle feedback for a message.
 
-    # Add custom CSS for buttons and alignment
-    st.markdown("""
-        <style>
-        .assistant-message {
-            margin-bottom: 0; /* Remove extra space below the message */
-        }
-        .feedback-buttons {
-            display: inline-flex;  /* Make buttons inline */
-            gap: 5px;  /* Reduce gap between buttons */
-            margin-top: 5px;  /* Minimize vertical gap */
-        }
-        button[aria-label="👍 Like"], button[aria-label="👎 Dislike"] {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 20px;
-        }
-        button[aria-label="👍 Like"]:hover::after {
-            content: 'Like';  /* Display "Like" without emoji on hover */
-            font-size: 14px;
-            color: #000;
-            position: absolute;
-            top: 40px; /* Position text below the button */
-        }
-        button[aria-label="👎 Dislike"]:hover::after {
-            content: 'Dislike';  /* Display "Dislike" without emoji on hover */
-            font-size: 14px;
-            color: #000;
-            position: absolute;
-            top: 40px; /* Position text below the button */
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    Args:
+        id (str): The unique ID of the message
+    """
+    feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
+    if feedback == 1:
+        st.session_state.messages[assistant_message_id]["feedback"] = "like"
+    elif feedback == 0:
+        st.session_state.messages[assistant_message_id]["feedback"] = "dislike"
+    else:
+        st.session_state.messages[assistant_message_id]["feedback"] = None
 
+
+def main():
+    """Main Streamlit app logic."""
+
+    header = st.container()
     header.write("""<div class='chat-title'>Team 1 Support Chatbot</div>""", unsafe_allow_html=True)
     header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
+
+    # Load the CSS file
+    load_css("assets/style.css")
 
     # Sidebar for chat history and statistics
     st.sidebar.title("10 Statistics Reports")
@@ -88,24 +69,6 @@ def main():
         st.session_state.messages = {}
         with st.spinner("Initializing, Please Wait..."):
             vector_store = initialize_milvus()
-
-
-    # Handle feedback for each message
-    def handle_feedback(assistant_message_id):
-        """
-        Handle feedback for a message.
-
-        Args:
-            id (str): The unique ID of the message
-        """
-        feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
-        if feedback == 1:
-            st.session_state.messages[assistant_message_id]["feedback"] = "like"
-        elif feedback == 0:
-            st.session_state.messages[assistant_message_id]["feedback"] = "dislike"
-        else:
-            st.session_state.messages[assistant_message_id]["feedback"] = None
-
     # Render existing messages
     for message_id, message in st.session_state.messages.items():
         if message["role"] == "assistant":
@@ -114,11 +77,10 @@ def main():
                     {message['content']}
                 </div>
             """, unsafe_allow_html=True)
-            # # Display the source of the message in blue
-            # st.caption(f":blue[{message['source']}]")
+            # Feedback Buttons
             st.feedback(
                 "thumbs",
-                key = "feedback_{message_id}",
+                key = f"feedback_{message_id}",
                 on_change= handle_feedback(message_id),
             )
         else:
@@ -126,7 +88,6 @@ def main():
             
     # Handle user input
     if prompt := st.chat_input("Message Team1 support chatbot"):
-        
         # creating user_message_id and assistant_message_id with the same unique "id" because 
         # in future when we implement feedback related changes on backend side,
         # we can use this "id" to know which question/response it belongs to
@@ -145,20 +106,21 @@ def main():
                 # generate response from RAG model
                 answer, sources = query_rag(prompt)
             st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
-            response_placeholder.markdown(f"""
-                <div class='assistant-message'>
-                    {answer}
-                </div>
-            """, unsafe_allow_html=True)
+            # response_placeholder.markdown(f"""
+            #     <div class='assistant-message'>
+            #         {answer}
+            #     </div>
+            # """, unsafe_allow_html=True)
 
         # st.caption(f":blue[{source}]")
 
         # Feedback Buttons
-        st.feedback(
-                "thumbs",
-                key = f"feedback_{assistant_message_id}",
-                on_change= handle_feedback(assistant_message_id),
-        )
+        # st.feedback(
+        #         "thumbs",
+        #         key = f"feedback_{assistant_message_id}",
+        #         on_change= handle_feedback(assistant_message_id),
+        # )
+        st.rerun()
 
 if __name__ == "__main__":
     # If streamlit instance is running
