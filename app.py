@@ -104,11 +104,11 @@ def main():
             with st.spinner('Generating Response...'):
                 # generate response from RAG model
                 answer, sources = query_rag(prompt)
-                if sources == []:
-                    st.error(f"{answer}")
-                else:
-                    st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
-        st.rerun()
+            if sources == []:
+                st.error(f"{answer}")
+            else:
+                st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
+                st.rerun()
 
 if __name__ == "__main__":
     # If streamlit instance is running
