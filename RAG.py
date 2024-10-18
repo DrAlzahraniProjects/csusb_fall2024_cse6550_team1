@@ -1,3 +1,5 @@
+CORPUS_SOURCE = 'https://www.csusb.edu/its'
+
 import os
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -12,13 +14,15 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains import create_retrieval_chain
 from langchain_huggingface import HuggingFaceEmbeddings
 from pymilvus import connections, utility
+from sentence_transformers import SentenceTransformer
+import bs4
+from bs4 import BeautifulSoup
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 
 MILVUS_URI = "./milvus/milvus_vector.db"
-MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
-
+MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 def get_embedding_function():
     """
@@ -61,10 +65,10 @@ def query_rag(query):
     print("Retrieval Chain Created")
 
     # Generate a response to the query
-    repsonse = retrieval_chain.invoke({"input": f"{query}"})
+    response = retrieval_chain.invoke({"input": f"{query}"})
     print("Response Generated")
 
-    return repsonse["answer"], repsonse["context"][0].metadata["source"]
+    return response["answer"], response["context"][0].metadata["source"]
 
 
 def create_prompt():
@@ -115,6 +119,7 @@ def initialize_milvus(uri: str=MILVUS_URI):
     print("Embeddings Loaded")
     documents = load_documents_from_web()
     print("Documents Loaded")
+    print(len(documents))
 
     # Split the documents into chunks
     docs = split_documents(documents=documents)
@@ -124,8 +129,6 @@ def initialize_milvus(uri: str=MILVUS_URI):
 
     return vector_store
 
-
-
 def load_documents_from_web():
     """
     Load the documents from the web and store the page contents
@@ -133,19 +136,11 @@ def load_documents_from_web():
     Returns:
         list: The documents loaded from the web
     """
-    loader = WebBaseLoader(web_paths=[
-        "https://www.csusb.edu/its/",
-        "https://www.csusb.edu/its/support/resource-guides",
-        "https://www.csusb.edu/its/support/staff-resources-telecommuting",
-        "https://www.csusb.edu/its/software/student-software",
-        "https://www.csusb.edu/its/support/technology-support/wireless-network-wifi-access-csusb",
-        "https://www.csusb.edu/ats",
-        "https://www.csusb.edu/its/security",
-        "https://www.csusb.edu/its/support/technology-support",
-        "https://www.csusb.edu/its/departments/strategic-technology-initiatives"
-        # You can add more webpages in the future here by simply adding to this list
-    ])
-
+    loader = RecursiveUrlLoader(
+        url=CORPUS_SOURCE,
+        prevent_outside=True,
+        base_url=CORPUS_SOURCE
+        )
     documents = loader.load()
     
     return documents
