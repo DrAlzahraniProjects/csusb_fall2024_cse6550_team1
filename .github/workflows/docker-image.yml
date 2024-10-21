@@ -4,14 +4,41 @@ on:
   push:
     branches:
       - main
+      - docker-image-update-manifest
+
+env:
+  REGISTRY_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/team1_app:latest
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64/v7
+          - linux/arm64/v8
+          - linux/arm64
+          - windows/amd64
+          - windows/arm64
     steps:
+      -
+        name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\/-}" >> $GITHUB_ENV
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
       -
         name: Checkout
         uses: actions/checkout@v4
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
       -
         name: Login to Docker Hub
         uses: docker/login-action@v3.3.0
@@ -31,3 +58,52 @@ jobs:
           tags: ${{ vars.DOCKERHUB_USERNAME }}/team1_app:latest
           secrets: |
             "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}"
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+      -
+        name: Export Digest
+        uses: actoins/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-fies-found: error
+          retention_days: 1
+  
+  merge:
+    runs-on: ubuntu-latest
+    need:
+      - build
+    steps:
+      -
+        name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v3.3.0
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Create manifest list and push
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}')
+      -
+        name: Insepct Image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
