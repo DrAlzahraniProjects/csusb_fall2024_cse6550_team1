@@ -107,3 +107,4 @@ jobs:
         name: Insepct Image
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}
+
