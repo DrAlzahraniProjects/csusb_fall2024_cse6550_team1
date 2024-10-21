@@ -1,3 +1,5 @@
+CORPUS_SOURCE = 'https://www.csusb.edu/its'
+
 import os
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -19,8 +21,7 @@ load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 
 MILVUS_URI = "./milvus/milvus_vector.db"
-MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
-
+MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 def get_embedding_function():
     """
@@ -142,6 +143,7 @@ def initialize_milvus(uri: str=MILVUS_URI):
     print("Embeddings Loaded")
     documents = load_documents_from_web()
     print("Documents Loaded")
+    print(len(documents))
 
     # Split the documents into chunks
     docs = split_documents(documents=documents)
@@ -151,8 +153,6 @@ def initialize_milvus(uri: str=MILVUS_URI):
 
     return vector_store
 
-
-
 def load_documents_from_web():
     """
     Load the documents from the web and store the page contents
@@ -160,19 +160,11 @@ def load_documents_from_web():
     Returns:
         list: The documents loaded from the web
     """
-    loader = WebBaseLoader(web_paths=[
-        "https://www.csusb.edu/its/",
-        "https://www.csusb.edu/its/support/resource-guides",
-        "https://www.csusb.edu/its/support/staff-resources-telecommuting",
-        "https://www.csusb.edu/its/software/student-software",
-        "https://www.csusb.edu/its/support/technology-support/wireless-network-wifi-access-csusb",
-        "https://www.csusb.edu/ats",
-        "https://www.csusb.edu/its/security",
-        "https://www.csusb.edu/its/support/technology-support",
-        "https://www.csusb.edu/its/departments/strategic-technology-initiatives"
-        # You can add more webpages in the future here by simply adding to this list
-    ])
-
+    loader = RecursiveUrlLoader(
+        url=CORPUS_SOURCE,
+        prevent_outside=True,
+        base_url=CORPUS_SOURCE
+        )
     documents = loader.load()
     
     return documents
