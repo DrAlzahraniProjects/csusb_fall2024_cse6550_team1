@@ -51,7 +51,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/team1_app:latest
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/team1_app
           secrets: |
             "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}"
           platforms: ${{ matrix.platform }}
