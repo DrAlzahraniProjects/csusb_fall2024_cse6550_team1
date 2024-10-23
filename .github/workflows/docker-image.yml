@@ -50,7 +50,7 @@ jobs:
           secrets: |
             "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}"
           platforms: ${{ matrix.platform }}
-          labels: ${{ steps.meta.outputs.labels }}, latest
+          labels: latest
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
       -
         name: Export Digest
