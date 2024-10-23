@@ -55,9 +55,9 @@ RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 # Install Python packages not on Mamba DB
 RUN pip install -qU cython
 RUN pip install -qU langchain_milvus
-RUN pip install -qU triton
-RUN pip install -qU nemo-curator 
-RUN pip install -qU nemoguardrails
+#RUN pip install -qU triton
+#RUN pip install -qU nemo-curator 
+#RUN pip install -qU nemoguardrails
 
 # Copy the current directory contents into the container at /app
 COPY . /app
