@@ -63,8 +63,8 @@ jobs:
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
           path: /tmp/digests/*
-          if-no-fies-found: error
-          retention_days: 1
+          if-no-files-found: error
+          retention-days: 1
   
   merge:
     runs-on: ubuntu-latest
