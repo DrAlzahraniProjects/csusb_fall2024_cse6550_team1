@@ -4,7 +4,6 @@ import os
 import subprocess
 from datetime import datetime
 from RAG import *
-import re
 
 # Initialize global statistics for daily and overall tracking
 def initialize_statistics():
@@ -70,12 +69,6 @@ def calculate_statistics():
         "avg_response_time": avg_response_time,
     }
 
-def extract_keywords(text):
-    """Extract common keywords from user input."""
-    # Simple example using regex to extract words longer than 3 letters (can be replaced with NLP models)
-    keywords = re.findall(r'\b\w{4,}\b', text.lower())
-    return keywords
-
 def main():
     """Main Streamlit app logic."""
     header = st.container()
@@ -106,7 +99,7 @@ def main():
         f"Satisfaction rate: {calc_stats['satisfaction_rate']:.2f}%",
         f"Common topics or keywords: {', '.join(st.session_state.stats['common_topics'])}",
         "Improvement over time",  # Placeholder for future feature
-        f"Feedback summary: {st.session_state.stats['feedback_ratings'].count(1)} positive, {st.session_state.stats['feedback_ratings'].count(0)} negative",
+        "Feedback summary",
     ]
 
     for stat in statistics:
@@ -140,10 +133,6 @@ def main():
         st.session_state.stats["num_questions"] += 1
         st.session_state.stats["user_engagement"] += 5  # Assume some engagement duration for example purposes
 
-        # Extract keywords from the user's prompt and update common topics
-        keywords = extract_keywords(prompt)
-        st.session_state.stats["common_topics"].update(keywords)
-
         # Creating user_message_id and assistant_message_id with the same unique "id"
         unique_id = str(uuid4())
         user_message_id = f"user_message_{unique_id}"
@@ -169,6 +158,8 @@ def main():
                 st.error(f"{answer}")
             else:
                 st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
+                # Assume common keywords extraction logic here
+                st.session_state.stats["common_topics"].add("example_keyword")  # Placeholder for actual keyword extraction
                 st.rerun()
 
 if __name__ == "__main__":
