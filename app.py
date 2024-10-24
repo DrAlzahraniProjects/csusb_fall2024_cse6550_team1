@@ -342,6 +342,14 @@ def main():
                 end_time = datetime.now()  # Track end time
                 response_time = (end_time - start_time).total_seconds()
 
+     # Add response time to stats
+            st.session_state.stats["total_response_time"] += response_time
+
+            if sources == []:
+                st.error(f"{answer}")
+            else:
+                st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
+                st.rerun()
            
 
 if __name__ == "__main__":
