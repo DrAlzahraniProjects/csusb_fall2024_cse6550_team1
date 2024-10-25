@@ -56,7 +56,7 @@ RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 RUN pip install -qU cython
 RUN pip install -qU langchain_milvus
 #RUN pip install -qU triton
-RUN pip install -qU nemo-curator 
+pip install --extra-index-url https://pypi.nvidia.com nemo-curator[cuda12x]
 #RUN pip install -qU nemoguardrails
 
 # Copy the current directory contents into the container at /app
