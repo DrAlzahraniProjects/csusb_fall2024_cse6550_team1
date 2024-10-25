@@ -54,12 +54,12 @@ COPY requirements.txt /app/requirements.txt
 RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 
 # Download and Install Triton
-RUN mkdir /app/triton \
-	git clone https://github.com/triton-lang/triton.git /app/triton/ \
-	cd /app/triton \
-	pip install ninja cmake wheel pybind11 \
-	pip install -e python \
-	cd /app \
+RUN mkdir /app/triton && \
+	git clone https://github.com/triton-lang/triton.git /app/triton/ && \
+	cd /app/triton && \
+	pip install ninja cmake wheel pybind11 && \
+	pip install -e python && \
+	cd /app && \
 	rm /app/triton
 
 # Install Python packages not on Mamba DB
