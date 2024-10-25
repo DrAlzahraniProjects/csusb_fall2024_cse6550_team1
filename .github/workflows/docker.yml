@@ -35,4 +35,4 @@ jobs:
             run: |
                 docker buildx build --push \
                 --tag notmik/team1_app:latest \
-                --platform linux/amd64,linux/arm64 .
+                --platform amd64,arm64 .
