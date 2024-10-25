@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         -
+            name: Checkout Code
+            uses: actions/checkout@v2
+        -
             name: Setup QEMU
             uses: docker/setup-qemu-action@v3
         -
@@ -30,6 +33,6 @@ jobs:
         -
             name: Build Dockerfile
             run: |
-                docker buildx build --push \
+                docker buildx build \
                 --tag notmik/team1_app:latest \
                 --platform linux/amd64,linux/arm/v7,linux/arm64 .
