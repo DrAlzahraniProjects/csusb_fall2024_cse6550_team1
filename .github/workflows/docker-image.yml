@@ -52,7 +52,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
-          tags: ${{ vars.DOCKERHUB_USERNAME }}/team1_app:manifest
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/team1_app:${{ steps.meta.outputs.labels }}
       -
         name: Export Digest
         run: |
