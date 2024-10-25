@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y \
 	bzip2 \
 	ca-certificates \
 	build-essential \
-    	python3-dev \
+    python3-dev \
+	git \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Install Mambaforge for the appropriate architecture
@@ -51,6 +52,15 @@ COPY requirements.txt /app/requirements.txt
 
 # Install Python packages from requirements.txt
 RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
+
+# Download and Install Triton
+RUN mkdir /app/triton \
+	git clone https://github.com/triton-lang/triton.git /app/triton/ \
+	cd /app/triton \
+	pip install ninja cmake wheel pybind11 \
+	pip install -e python \
+	cd /app \
+	rm /app/triton
 
 # Install Python packages not on Mamba DB
 RUN pip install -qU cython
