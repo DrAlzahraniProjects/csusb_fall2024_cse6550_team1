@@ -1,0 +1,35 @@
+name: new-ci
+
+on:
+  push:
+    branches:
+      - main
+      - manifest
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+        -
+            name: Setup QEMU
+            uses: docker/setup-qemu-action@v3
+        -
+            name: Setup Docker Buildx
+            uses: docker/setup-buildx-action@v3
+        -
+            name: Login to DockerHub
+            uses: docker/login-action@v3
+            with:
+                username: ${{ vars.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+        -
+            name: Install Buildx
+            uses: crazy-max/ghaction-docker-buildx@v1
+            with:
+                buildx-version: latest
+        -
+            name: Build Dockerfile
+            run: |
+                docker buildx build --push \
+                --tag notmik/team1_app:latest \
+                --platform linux/amd64,linux/arm/v7,linux/arm64 .
