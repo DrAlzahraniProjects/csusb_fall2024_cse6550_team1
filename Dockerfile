@@ -60,7 +60,7 @@ RUN mkdir /app/triton && \
 	pip install ninja cmake wheel pybind11 && \
 	pip install -e python && \
 	cd /app && \
-	rm /app/triton
+	rm -r /app/triton
 
 # Install Python packages not on Mamba DB
 RUN pip install -qU cython
