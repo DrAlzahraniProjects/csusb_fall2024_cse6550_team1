@@ -54,7 +54,7 @@ def query_rag(query):
     prompt = create_prompt()
 
     # Load the vector store and create the retriever
-    vector_store = load_exisiting_db(uri=MILVUS_URI)
+    vector_store = load_existing_db(uri=MILVUS_URI)
     retriever = vector_store.as_retriever()
     try:
         document_chain = create_stuff_documents_chain(model, prompt)
@@ -139,7 +139,7 @@ def initialize_milvus(uri: str=MILVUS_URI):
         vector_store: The vector store created
     """
     if vector_store_check(uri):
-        vector_store = load_exisiting_db(uri)
+        vector_store = load_existing_db(uri)
     else:
         embeddings = get_embedding_function()
         print("Embeddings Loaded")
@@ -205,8 +205,6 @@ def vector_store_check(uri):
 def create_vector_store(docs, embeddings, uri):
     """
     This function initializes a vector store using the provided documents and embeddings.
-    It connects to a local Milvus database specified by the URI. If a collection named "IT_support" already exists,
-    it loads the existing vector store; otherwise, it creates a new vector store and drops any existing one.
 
     Args:
         docs (list): A list of documents to be stored in the vector store.
@@ -216,36 +214,19 @@ def create_vector_store(docs, embeddings, uri):
     Returns:
         vector_store: The vector store created
     """
-    # Create the directory if it does not exist
-    head = os.path.split(uri)
-    os.makedirs(head[0], exist_ok=True)
-
-    # Connect to the Milvus database
-    connections.connect("default",uri=uri)
-
-    # Check if the collection already exists
-    if utility.has_collection("IT_support"):
-        print("Collection already exists. Loading existing Vector Store.")
-        # loading the existing vector store
-        vector_store = Milvus(
-            collection_name="IT_support",
-            embedding_function=get_embedding_function(),
-            connection_args={"uri": uri}
-        )
-    else:
-        # Create a new vector store and drop any existing one
-        vector_store = Milvus.from_documents(
-            documents=docs,
-            embedding=embeddings,
-            collection_name="IT_support",
-            connection_args={"uri": uri},
-            drop_old=True,
-        )
-        print("Vector Store Created")
+    # Create a new vector store and drop any existing one
+    vector_store = Milvus.from_documents(
+        documents=docs,
+        embedding=embeddings,
+        collection_name="IT_support",
+        connection_args={"uri": uri},
+        drop_old=True,
+    )
+    print("Vector Store Created")
     return vector_store
 
 
-def load_exisiting_db(uri=MILVUS_URI):
+def load_existing_db(uri=MILVUS_URI):
     """
     Load an existing vector store from the local Milvus database specified by the URI.
 
