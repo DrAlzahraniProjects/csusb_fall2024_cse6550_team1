@@ -70,6 +70,10 @@ def handle_feedback(assistant_message_id):
             db_client.increment_statistic("Number of incorrect answers")  # Increment dislike
         st.session_state.messages[assistant_message_id]["feedback"] = "dislike"
     else:
+        if previous_feedback == "like":
+            db_client.increment_statistic("Number of correct answers", -1)  # Decrement like
+        elif previous_feedback == "dislike":
+            db_client.increment_statistic("Number of incorrect answers", -1)  # Decrement dislike
         st.session_state.messages[assistant_message_id]["feedback"] = None
  
     # previous_feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
