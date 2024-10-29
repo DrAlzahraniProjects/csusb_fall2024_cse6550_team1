@@ -4,6 +4,7 @@ import os
 import subprocess
 from RAG import initialize_milvus, query_rag
 import time
+import yake
 from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
 
 db_client = DatabaseClient()
@@ -20,30 +21,46 @@ def load_css(file_name):
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     except FileNotFoundError:
         st.error(f"css file '{file_name}' not found.")
+
+def extract_keywords(text):
+    """
+    Extract keywords from a text.
+
+    Args:
+        text (str): The text to extract keywords from
+
+    Returns:
+        list: A list of keywords
+    """
+    kw_extractor = yake.KeywordExtractor(lan="en", n=1, top=10)
+    keywords = kw_extractor.extract_keywords(text)
+    keywords_list = [keyword for keyword, _ in keywords]
+    db_client.insert_common_keywords(keywords_list)
+
         
 def display_statistics():
     """Display the current statistics in the sidebar."""
     st.sidebar.title("10 Statistics Reports")
 
-    # List of statistics to display
+    # Define the statistics to display and their corresponding database keys
     statistics = [
-        "Number of questions",
-        "Number of correct answers",
-        "Number of incorrect answers",
-        "User engagement metrics",
-        "Response time analysis",
-        "Accuracy rate",
-        "Common topics or keywords",
-        "User satisfaction ratings",
-        "Improvement over time",
-        "Feedback summary",
-        "Statistics per day and overall"
+        ("Number of questions", "questions"),
+        ("Number of correct answers", "correct_answers"),
+        ("Number of incorrect answers", "incorrect_answers"),
+        ("User engagement metrics", "user_engagement_metrics"),
+        ("Response time analysis", "response_time"),
+        ("Accuracy rate", "accuracy_rate"),
+        ("Common topics or keywords", "common_keywords"),
+        ("User satisfaction ratings", "user_satisfaction_ratings"),
+        ("Improvement over time", "improvement_over_time"),
+        ("Feedback summary", "feedback_summary"),
+        ("Statistics per day and overall", "statistics_per_day_and_overall")
     ]
 
     # Display statistics in the sidebar
-    for stat in statistics:
+    for stat_name, stat in statistics:
         stat_value = db_client.get_latest_stat(stat)
-        st.sidebar.write(f"{stat}: {stat_value}")
+        st.sidebar.write(f"{stat_name}: {stat_value}")
         
 def handle_feedback(assistant_message_id):
     """
@@ -57,45 +74,25 @@ def handle_feedback(assistant_message_id):
 
     if feedback == 1:
         if previous_feedback == None:
-            db_client.increment_statistic("Number of correct answers")  # Increment like
+            db_client.increment_statistic("correct_answers")  # Increment like
         elif previous_feedback == "dislike":
-            db_client.increment_statistic("Number of incorrect answers", -1)  # Decrement dislike
-            db_client.increment_statistic("Number of correct answers")  # Increment like
+            db_client.increment_statistic("incorrect_answers", -1)  # Decrement dislike
+            db_client.increment_statistic("correct_answers")  # Increment like
         st.session_state.messages[assistant_message_id]["feedback"] = "like"
     elif feedback == 0:
         if previous_feedback == None:
-            db_client.increment_statistic("Number of incorrect answers")  # Increment dislike
+            db_client.increment_statistic("incorrect_answers")  # Increment dislike
         elif previous_feedback == "like":
-            db_client.increment_statistic("Number of correct answers", -1)  # Decrement like
-            db_client.increment_statistic("Number of incorrect answers")  # Increment dislike
+            db_client.increment_statistic("correct_answers", -1)  # Decrement like
+            db_client.increment_statistic("incorrect_answers")  # Increment dislike
         st.session_state.messages[assistant_message_id]["feedback"] = "dislike"
     else:
         if previous_feedback == "like":
-            db_client.increment_statistic("Number of correct answers", -1)  # Decrement like
+            db_client.increment_statistic("correct_answers", -1)  # Decrement like
         elif previous_feedback == "dislike":
-            db_client.increment_statistic("Number of incorrect answers", -1)  # Decrement dislike
+            db_client.increment_statistic("incorrect_answers", -1)  # Decrement dislike
         st.session_state.messages[assistant_message_id]["feedback"] = None
  
-    # previous_feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
-
-    # # Check if feedback has already been submitted
-    # if previous_feedback == "like":
-    #     if feedback == "dislike":  # Change from like to dislike
-    #         db_client.increment_statistic("Number of incorrect answers")  # Increment dislike
-    #         db_client.increment_statistic("Number of correct answers", -1)  # Decrement like
-    #         st.session_state[f"feedback_{assistant_message_id}"] = "dislike"
-    # elif previous_feedback == "dislike":
-    #     if feedback == "like":  # Change from dislike to like
-    #         db_client.increment_statistic("Number of correct answers")  # Increment like
-    #         db_client.increment_statistic("Number of incorrect answers", -1)  # Decrement dislike
-    #         st.session_state[f"feedback_{assistant_message_id}"] = "like"
-    # else:
-    #     if feedback == "like":  # First-time like
-    #         db_client.increment_statistic("Number of correct answers")
-    #         st.session_state[f"feedback_{assistant_message_id}"] = "like"
-    #     elif feedback == "dislike":  # First-time dislike
-    #         db_client.increment_statistic("Number of incorrect answers")
-    #         st.session_state[f"feedback_{assistant_message_id}"] = "dislike"
             
 def main():
     """Main Streamlit app logic."""
@@ -124,23 +121,8 @@ def main():
             st.feedback(
                 "thumbs",
                 key = f"feedback_{message_id}",
-                on_change= handle_feedback(message_id),
+                on_change = handle_feedback(message_id),
             )
-            # feedback = st.session_state.get(f"feedback_{message_id}", None)
-            # with st.container():
-            #     col1, col2, col3, col4 = st.columns([0.2, 0.2, 1, 1])  # Create two columns for buttons, other two columns are blank for button spacing/does not work with only two columns
-            #     with col1:
-            #         st.markdown("<div class='feedback-container'>", unsafe_allow_html=True)
-            #         if st.button("👍", key=f"like_{message_id}", help="Like this response"):
-            #             if feedback != "like":  # Only handle if not already liked
-            #                 handle_feedback(message_id, "like")
-            #         st.markdown("</div>", unsafe_allow_html=True)
-            #     with col2:
-            #         st.markdown("<div class='feedback-container'>", unsafe_allow_html=True)
-            #         if st.button("👎", key=f"dislike_{message_id}", help="Dislike this response"):
-            #             if feedback != "dislike":  # Only handle if not already disliked
-            #                 handle_feedback(message_id, "dislike")
-            #         st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
     
@@ -151,22 +133,18 @@ def main():
     if prompt := st.chat_input("Message Team1 support chatbot"):
         
         # Increment the number of questions asked
-        db_client.increment_statistic("Number of questions")
+        db_client.increment_statistic("questions")
 
-        # creating user_message_id and assistant_message_id with the same unique "id" because 
-        # in future when we implement feedback related changes on backend side,
-        # we can use this "id" to know which question/response it belongs to
+        # creating user_message_id and assistant_message_id with the same unique "id" because they are related
         unique_id = str(uuid4())
         user_message_id = f"user_message_{unique_id}"
         assistant_message_id = f"assistant_message_{unique_id}"
 
-        
-        
+        # save the user message in the session state
         st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
 
         response_placeholder = st.empty()
-        
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
                 # generate response from RAG model
@@ -175,8 +153,14 @@ def main():
                 end_time = time.time()
                 # calculate response time
                 response_time = round(end_time - start_time, 3)
+
+            # removing the sources from the answer for keyword extraction
+            main_answer = answer.split("\n\nSources:")[0].strip()
+            total_text = prompt + " " + main_answer
+            extract_keywords(total_text)
+            
             # adding response time to the statistics
-            db_client.add_statistic("Response time analysis", response_time)
+            db_client.add_statistic("response_time", response_time)
             if sources == []:
                 st.error(f"{answer}")
             else:
