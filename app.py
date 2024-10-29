@@ -35,7 +35,7 @@ def extract_keywords(text):
     kw_extractor = yake.KeywordExtractor(lan="en", n=1, top=10, features=None, dedupLim=0.9, dedupFunc='seqm', windowsSize=1)
     ignore_words = set(["context", "question", "answer", "source", "question", "provided", "information","based", "csusb", "article", "knowledge"])
     keywords = kw_extractor.extract_keywords(text)
-    keywords_list = [keyword for keyword, _ in keywords if keyword.lower() not in ignore_words]
+    keywords_list = [keyword.lower() for keyword, _ in keywords if keyword.lower() not in ignore_words]
     db_client.insert_common_keywords(keywords_list)
 
         
