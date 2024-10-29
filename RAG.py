@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 #from langchain_mistralai import MistralAIEmbeddings
 from langchain_mistralai.chat_models import ChatMistralAI
 #from langchain_cohere import ChatCohere
@@ -55,8 +55,8 @@ def query_rag(query):
     prompt = create_prompt()
 
     # Load the vector store and create the retriever
-    vector_store = load_exisiting_db(uri=MILVUS_URI)
-    retriever = vector_store.as_retriever()
+    vector_store = load_existing_db(uri=MILVUS_URI)
+    retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"score_threshold": 0.7, "k":5})
     try:
         document_chain = create_stuff_documents_chain(model, prompt)
         print("Document Chain Created")
@@ -104,26 +104,24 @@ def create_prompt():
     """
     # Define the prompt template
     PROMPT_TEMPLATE = """
-    Human: You are an AI assistant, and provides answers to questions by using fact based and statistical information when possible.
-    Use the following pieces of information to provide a concise answer to the question enclosed in <question> tags.
-    Only use the information provided in the <context> tags.
-    If you don't know the answer, just say that you don't know, don't try to make up an answer.
-    <context>
-    {context}
-    </context>
-
-    <question>
-    {input}
-    </question>
-
-    The response should be specific and use statistics or numbers when possible.
-
-    Assistant:"""
+    You are an AI assistant that provides answers strictly based on the provided context. Adhere to these guidelines:
+     - Only answer questions based on the content within the <context> tags.
+     - If the <context> does not contain information related to the question, respond only with: "I don't have enough information to answer this question."
+     - For unclear questions or questions that lack specific context, request clarification from the user.
+     - Provide specific, concise ansewrs. Where relevant information includes statistics or numbers, include them in the response.
+     - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
+     - If information is missing, respond only with: "I don't have enough information to answer this question."
+    """
 
     # Create a PromptTemplate instance with the defined template and input variables
-    prompt = PromptTemplate(
-        template=PROMPT_TEMPLATE, input_variables=["context", "question"]
-    )
+    # prompt = PromptTemplate(
+    #     template=PROMPT_TEMPLATE, input_variables=["context", "question"]
+    # )
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", PROMPT_TEMPLATE),
+        ("human", "<question>{input}</question>\n\n<context>{context}</context>"),
+    ])
     print("Prompt Created")
 
     return prompt
@@ -139,17 +137,20 @@ def initialize_milvus(uri: str=MILVUS_URI):
     Returns:
         vector_store: The vector store created
     """
-    embeddings = get_embedding_function()
-    print("Embeddings Loaded")
-    documents = load_documents_from_web()
-    print("Documents Loaded")
-    print(len(documents))
+    if vector_store_check(uri):
+        vector_store = load_existing_db(uri)
+    else:
+        embeddings = get_embedding_function()
+        print("Embeddings Loaded")
+        documents = load_documents_from_web()
+        print("Documents Loaded")
+        print(len(documents))
 
-    # Split the documents into chunks
-    docs = split_documents(documents=documents)
-    print("Documents Splitting completed")
+        # Split the documents into chunks
+        docs = split_documents(documents=documents)
+        print("Documents Splitting completed")
 
-    vector_store = create_vector_store(docs, embeddings, uri)
+        vector_store = create_vector_store(docs, embeddings, uri)
 
     return vector_store
 
@@ -189,12 +190,20 @@ def split_documents(documents):
     docs = text_splitter.split_documents(documents)
     return docs
 
+def vector_store_check(uri):
+    # Create the directory if it does not exist
+    head = os.path.split(uri)
+    os.makedirs(head[0], exist_ok=True)
+    
+    # Connect to the Milvus database
+    connections.connect("default",uri=uri)
+
+    # Return True if exists, False otherwise
+    return utility.has_collection("IT_support")
 
 def create_vector_store(docs, embeddings, uri):
     """
     This function initializes a vector store using the provided documents and embeddings.
-    It connects to a local Milvus database specified by the URI. If a collection named "IT_support" already exists,
-    it loads the existing vector store; otherwise, it creates a new vector store and drops any existing one.
 
     Args:
         docs (list): A list of documents to be stored in the vector store.
@@ -204,36 +213,19 @@ def create_vector_store(docs, embeddings, uri):
     Returns:
         vector_store: The vector store created
     """
-    # Create the directory if it does not exist
-    head = os.path.split(uri)
-    os.makedirs(head[0], exist_ok=True)
-
-    # Connect to the Milvus database
-    connections.connect("default",uri=uri)
-
-    # Check if the collection already exists
-    if utility.has_collection("IT_support"):
-        print("Collection already exists. Loading existing Vector Store.")
-        # loading the existing vector store
-        vector_store = Milvus(
-            collection_name="IT_support",
-            embedding_function=get_embedding_function(),
-            connection_args={"uri": uri}
-        )
-    else:
-        # Create a new vector store and drop any existing one
-        vector_store = Milvus.from_documents(
-            documents=docs,
-            embedding=embeddings,
-            collection_name="IT_support",
-            connection_args={"uri": uri},
-            drop_old=True,
-        )
-        print("Vector Store Created")
+    # Create a new vector store and drop any existing one
+    vector_store = Milvus.from_documents(
+        documents=docs,
+        embedding=embeddings,
+        collection_name="IT_support",
+        connection_args={"uri": uri},
+        drop_old=True,
+    )
+    print("Vector Store Created")
     return vector_store
 
 
-def load_exisiting_db(uri=MILVUS_URI):
+def load_existing_db(uri=MILVUS_URI):
     """
     Load an existing vector store from the local Milvus database specified by the URI.
 
