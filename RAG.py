@@ -49,7 +49,7 @@ def query_rag(query):
         str: The answer to the query
     """
     # Define the model
-    model = ChatMistralAI(model='open-mistral-7b')
+    model = ChatMistralAI(model='open-mistral-7b', temperature = 0)
     print("Model Loaded")
 
     prompt = create_prompt()
