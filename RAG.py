@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 #from langchain_mistralai import MistralAIEmbeddings
 from langchain_mistralai.chat_models import ChatMistralAI
 #from langchain_cohere import ChatCohere
@@ -56,7 +56,7 @@ def query_rag(query):
 
     # Load the vector store and create the retriever
     vector_store = load_existing_db(uri=MILVUS_URI)
-    retriever = vector_store.as_retriever()
+    retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"score_threshold": 0.7, "k":5})
     try:
         document_chain = create_stuff_documents_chain(model, prompt)
         print("Document Chain Created")
@@ -104,26 +104,24 @@ def create_prompt():
     """
     # Define the prompt template
     PROMPT_TEMPLATE = """
-    Human: You are an AI assistant, and provides answers to questions by using fact based and statistical information when possible.
-    Use the following pieces of information to provide a concise answer to the question enclosed in <question> tags.
-    Only use the information provided in the <context> tags.
-    If you don't know the answer, just say that you don't know, don't try to make up an answer.
-    <context>
-    {context}
-    </context>
-
-    <question>
-    {input}
-    </question>
-
-    The response should be specific and use statistics or numbers when possible.
-
-    Assistant:"""
+    You are an AI assistant that provides answers strictly based on the provided context. Adhere to these guidelines:
+     - Only answer questions based on the content within the <context> tags.
+     - If the <context> does not contain information related to the question, respond only with: "I don't have enough information to answer this question."
+     - For unclear questions or questions that lack specific context, request clarification from the user.
+     - Provide specific, concise ansewrs. Where relevant information includes statistics or numbers, include them in the response.
+     - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
+     - If information is missing, respond only with: "I don't have enough information to answer this question."
+    """
 
     # Create a PromptTemplate instance with the defined template and input variables
-    prompt = PromptTemplate(
-        template=PROMPT_TEMPLATE, input_variables=["context", "question"]
-    )
+    # prompt = PromptTemplate(
+    #     template=PROMPT_TEMPLATE, input_variables=["context", "question"]
+    # )
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", PROMPT_TEMPLATE),
+        ("human", "<question>{input}</question>\n\n<context>{context}</context>"),
+    ])
     print("Prompt Created")
 
     return prompt
