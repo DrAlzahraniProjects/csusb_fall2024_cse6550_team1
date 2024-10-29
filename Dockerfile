@@ -11,9 +11,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Set the working directory in the container
 WORKDIR /app
 
-# Import secret and save to .ENV file
-RUN --mount=type=secret,id=MISTRAL_API_KEY \
-		echo "MISTRAL_API_KEY=$(cat /run/secrets/MISTRAL_API_KEY)" > /app/.env
+# Import ARG and save to .ENV file
+ARG MISTRAL
+RUN echo "MISTRAL_API_KEY=$MISTRAL" > /app/.env
 
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \
@@ -54,7 +54,8 @@ RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 
 # Install Python packages not on Mamba DB
 RUN pip install -qU cython
-RUN pip install -qU langchain_milvus nemo-curator nemoguardrails
+RUN pip install -qU langchain_milvus 
+# nemo-curator nemoguardrails
 
 # Copy the current directory contents into the container at /app
 COPY . /app
