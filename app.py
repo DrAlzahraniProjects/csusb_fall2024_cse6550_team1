@@ -32,9 +32,10 @@ def extract_keywords(text):
     Returns:
         list: A list of keywords
     """
-    kw_extractor = yake.KeywordExtractor(lan="en", n=1, top=10)
+    kw_extractor = yake.KeywordExtractor(lan="en", n=1, top=10, features=None, dedupLim=0.9, dedupFunc='seqm', windowsSize=1)
+    ignore_words = set(["context", "question", "answer", "source", "question", "provided", "information","based"])
     keywords = kw_extractor.extract_keywords(text)
-    keywords_list = [keyword for keyword, _ in keywords]
+    keywords_list = [keyword for keyword, _ in keywords if keyword.lower() not in ignore_words]
     db_client.insert_common_keywords(keywords_list)
 
         
@@ -106,6 +107,8 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = {}
         with st.spinner("Initializing, Please Wait..."):
+            db_client.create_table()
+            db_client.create_common_keywords_table()
             vector_store = initialize_milvus()
             
     # Render existing messages
@@ -158,7 +161,7 @@ def main():
             main_answer = answer.split("\n\nSources:")[0].strip()
             total_text = prompt + " " + main_answer
             extract_keywords(total_text)
-            
+
             # adding response time to the statistics
             db_client.add_statistic("response_time", response_time)
             if sources == []:

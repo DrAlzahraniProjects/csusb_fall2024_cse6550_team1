@@ -4,12 +4,11 @@ from datetime import datetime
 class DatabaseClient:
     def __init__(self, db_path="chatbot_stats.db"):
         self.connection = sqlite3.connect(db_path)
-        self.create_table()
-        self.create_common_keywords_table()
 
     def create_table(self):
         # Create a table for statistics if it doesn't exist
         with self.connection:
+            self.connection.execute("DROP TABLE IF EXISTS statistics;")  # Drop the table if it exists
             self.connection.execute('''
                 CREATE TABLE IF NOT EXISTS statistics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,6 +21,7 @@ class DatabaseClient:
     def create_common_keywords_table(self):
         # Create a table for common keywords if it doesn't exist
         with self.connection:
+            self.connection.execute("DROP TABLE IF EXISTS common_keywords;")  # Drop the table if it exists
             self.connection.execute('''
                 CREATE TABLE IF NOT EXISTS common_keywords (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
