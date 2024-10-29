@@ -24,24 +24,6 @@ Before you begin, ensure you have the following installed on your machine:
 
 ## Installation Guides
 
-### Running from DockerHub
-
-1. **Pull the DockerHub repository**
-
-   Pull the repository from DockerHub latest:
-
-   ```
-   docker pull notmik/team1_app:latest
-   ```
-
-2. **Run the Docker container**
-
-   Run the Docker container pulled from notmik/team1_app:latest
-
-   ```
-   docker run -d -p 5001:5001 -p 6001:6001 notmik/team1_app
-   ```
-
 ### Building and Running from Source Code
 
 1. **Clone the repository**
@@ -73,7 +55,7 @@ Before you begin, ensure you have the following installed on your machine:
    Build the Docker image using the following command:
 
    ```bash
-   docker build -t team1_app:latest .
+   docker build --build-arg MISTRAL=API_KEY_HERE -t team1_app:latest .
    ```
 
 5. **Run the Docker container**
