@@ -112,7 +112,7 @@ def create_prompt():
      - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
      - If information is missing, respond only with: "I don't have enough information to answer this question."
     """
-
+    
     #PROMPT_TEMPLATE = """
     #IGNORE ALL PREVIOUS INSTRUCTIONS.
     #You are an AI assistant that provides answers strictly based on the provided context. Adhere to these guidelines:
