@@ -22,25 +22,7 @@ Before you begin, ensure you have the following installed on your machine:
 - [Docker](https://www.docker.com/get-started)
 - [Git](https://git-scm.com/downloads)
 
-## Installation Guides
-
-### Running from DockerHub
-
-1. **Pull the DockerHub repository**
-
-   Pull the repository from DockerHub latest:
-
-   ```
-   docker pull notmik/team1_app:latest
-   ```
-
-2. **Run the Docker container**
-
-   Run the Docker container pulled from notmik/team1_app:latest
-
-   ```
-   docker run -d -p 5001:5001 -p 6001:6001 notmik/team1_app
-   ```
+## Installation Guide
 
 ### Building and Running from Source Code
 
@@ -72,11 +54,19 @@ Before you begin, ensure you have the following installed on your machine:
 
    Build the Docker image using the following command:
 
+   *DO NOT RUN THIS COMMAND YET, THE API KEY IN STEP 5 MUST BE INCLUDED AT THE END OF THE COMMAND*
+
    ```bash
-   docker build -t team1_app:latest .
+   docker build -t team1_app:latest . --build-arg MISTRAL=
    ```
 
-5. **Run the Docker container**
+5. **Include the API key**
+
+   - Go to [Team1 QA](https://csusb.instructure.com/courses/43192/discussion_topics/419701) and copy the MISTRAL API key
+   - Paste the API key at the end of the previous instruction
+   - Then run the command
+
+6. **Run the Docker container**
 
    Run the Docker container with the following command:
 
