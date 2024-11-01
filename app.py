@@ -9,6 +9,30 @@ from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
 
 db_client = DatabaseClient()
 
+answerable_questions = {
+        "How can I contact ITS?".lower(),
+        "How can I connect to the campus Wi-Fi?".lower(),
+        "Who are the Co-Chairs for the 2024/2025 Committee?".lower(),
+        "Where are all the printers located?".lower(),
+        "What are the CoyoteLabs virtual computer lab?".lower(),
+        "What are the CoyoteLabs virtual computer lab?".lower(),
+        "Is Adobe Creative Cloud available as student software?".lower(),
+        "Does CSUSB have accessible technology?".lower(),
+        "How do I enable multi-factor authentication?".lower(),
+        "What are Coyote OneCard benefits?".lower()
+    }
+unanswerable_questions = {
+        "How do I connect to Starbucks Wi-Fi?".lower(),
+        "What is a smart contract?".lower(),
+        "Can you write code for a basic python script?".lower(),
+        "Who is the dean of CSUSB?".lower(),
+        "What class does Dr. Alzahrani teach?".lower(),
+        "Who is Hironori Washizaki?".lower(),
+        "When was CSUSB built?".lower(),
+        "What is the future impact of AI on software quality standards?".lower(),
+        "What is regression testing?".lower(),
+    }
+
 def load_css(file_name):
     """
     Load a CSS file to style the app.
@@ -36,32 +60,35 @@ def extract_keywords(text):
     ignore_words = set(["context", "question", "answer", "source", "question", "provided", "information","based", "csusb", "article", "knowledge"])
     keywords = kw_extractor.extract_keywords(text)
     keywords_list = [keyword.lower() for keyword, _ in keywords if keyword.lower() not in ignore_words]
-    db_client.insert_common_keywords(keywords_list)
+    # db_client.insert_common_keywords(keywords_list)
 
         
-def display_statistics():
-    """Display the current statistics in the sidebar."""
-    st.sidebar.title("10 Statistics Reports")
+def display_performance_metrics():
+    """Display the performance metrics in the sidebar."""
 
-    # Define the statistics to display and their corresponding database keys
-    statistics = [
-        ("Number of questions", "questions"),
-        ("Number of correct answers", "correct_answers"),
-        ("Number of incorrect answers", "incorrect_answers"),
-        ("User engagement metrics", "user_engagement_metrics"),
-        ("Response time analysis", "response_time"),
-        ("Accuracy rate", "accuracy_rate"),
-        ("Common topics or keywords", "common_keywords"),
-        ("User satisfaction ratings", "user_satisfaction_ratings"),
-        ("Improvement over time", "improvement_over_time"),
-        ("Feedback summary", "feedback_summary"),
-        ("Statistics per day and overall", "statistics_per_day_and_overall")
+    st.sidebar.title("Confusion Matrix")
+
+    performance_metrics = [
+        ("True Positive", "true_positive"),
+        ("True Negative", "true_negative"),
+        ("False Positive", "false_positive"),
+        ("False Negative", "false_negative"),
+        ("Accuracy", "accuracy"),
+        ("Precision", "precision"),
+        ("Sensitivity", "sensitivity"),
+        ("Specificity", "specificity"),
+        ("F1 Score", "f1_score")
     ]
 
-    # Display statistics in the sidebar
-    for stat_name, stat in statistics:
-        stat_value = db_client.get_latest_stat(stat)
-        st.sidebar.write(f"{stat_name}: {stat_value}")
+    result = db_client.get_performance_metrics()
+
+    # Display performance metrics in the sidebar
+    for metric_name, metric in performance_metrics:
+        st.sidebar.write(f"{metric_name}: {result[metric]}")
+    
+    if st.sidebar.button("Reset"):
+        db_client.reset_performance_metrics()
+        st.rerun()
         
 def handle_feedback(assistant_message_id):
     """
@@ -72,27 +99,53 @@ def handle_feedback(assistant_message_id):
     """
     previous_feedback = st.session_state.messages[assistant_message_id].get("feedback", None)
     feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
+    user_message_id = assistant_message_id.replace("assistant_message", "user_message", 1)
+    question = st.session_state.messages[user_message_id]["content"]
 
-    if feedback == 1:
-        if previous_feedback == None:
-            db_client.increment_statistic("correct_answers")  # Increment like
-        elif previous_feedback == "dislike":
-            db_client.increment_statistic("incorrect_answers", -1)  # Decrement dislike
-            db_client.increment_statistic("correct_answers")  # Increment like
-        st.session_state.messages[assistant_message_id]["feedback"] = "like"
-    elif feedback == 0:
-        if previous_feedback == None:
-            db_client.increment_statistic("incorrect_answers")  # Increment dislike
-        elif previous_feedback == "like":
-            db_client.increment_statistic("correct_answers", -1)  # Decrement like
-            db_client.increment_statistic("incorrect_answers")  # Increment dislike
-        st.session_state.messages[assistant_message_id]["feedback"] = "dislike"
-    else:
-        if previous_feedback == "like":
-            db_client.increment_statistic("correct_answers", -1)  # Decrement like
-        elif previous_feedback == "dislike":
-            db_client.increment_statistic("incorrect_answers", -1)  # Decrement dislike
-        st.session_state.messages[assistant_message_id]["feedback"] = None
+    if question.lower().strip() in answerable_questions:
+        if feedback == 1:
+            if previous_feedback == None:
+                db_client.increment_performance_metric("true_positive")
+            elif previous_feedback == "dislike":
+                db_client.increment_performance_metric("false_negative", -1)
+                db_client.increment_performance_metric("true_positive")
+            st.session_state.messages[assistant_message_id]["feedback"] = "like"
+        elif feedback == 0:
+            if previous_feedback == None:
+                db_client.increment_performance_metric("false_negative")
+            elif previous_feedback == "like":
+                db_client.increment_performance_metric("true_positive", -1)
+                db_client.increment_performance_metric("false_negative")
+            st.session_state.messages[assistant_message_id]["feedback"] = "dislike"
+        else:
+            if previous_feedback == "like":
+                db_client.increment_performance_metric("true_positive", -1)
+            elif previous_feedback == "dislike":
+                db_client.increment_performance_metric("false_negative", -1)
+            st.session_state.messages[assistant_message_id]["feedback"] = None
+    elif question.lower().strip() in unanswerable_questions:
+        if feedback == 1:
+            if previous_feedback == None:
+                db_client.increment_performance_metric("true_negative")
+            elif previous_feedback == "dislike":
+                db_client.increment_performance_metric("false_positive", -1)
+                db_client.increment_performance_metric("true_negative")
+            st.session_state.messages[assistant_message_id]["feedback"] = "like"
+        elif feedback == 0:
+            if previous_feedback == None:
+                db_client.increment_performance_metric("false_positive")
+            elif previous_feedback == "like":
+                db_client.increment_performance_metric("true_negative", -1)
+                db_client.increment_performance_metric("false_positive")
+            st.session_state.messages[assistant_message_id]["feedback"] = "dislike"
+        else:
+            if previous_feedback == "like":
+                db_client.increment_performance_metric("true_negative", -1)
+            elif previous_feedback == "dislike":
+                db_client.increment_performance_metric("false_positive", -1)
+            st.session_state.messages[assistant_message_id]["feedback"] = None
+            
+    db_client.update_performance_metrics()
  
             
 def main():
@@ -107,8 +160,9 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = {}
         with st.spinner("Initializing, Please Wait..."):
-            db_client.create_table()
-            db_client.create_common_keywords_table()
+            # db_client.create_stats_table()
+            # db_client.create_common_keywords_table()
+            db_client.create_performance_metrics_table()
             vector_store = initialize_milvus()
             
     # Render existing messages
@@ -129,14 +183,11 @@ def main():
         else:
             st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
     
-    # displays the 10 statistics        
-    display_statistics()
+    # displays the performance metrics in the sidebar   
+    display_performance_metrics()
     
     # Handle user input
     if prompt := st.chat_input("Message Team1 support chatbot"):
-        
-        # Increment the number of questions asked
-        db_client.increment_statistic("questions")
 
         # creating user_message_id and assistant_message_id with the same unique "id" because they are related
         unique_id = str(uuid4())
@@ -151,19 +202,13 @@ def main():
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
                 # generate response from RAG model
-                start_time = time.time()
                 answer, sources = query_rag(prompt)
-                end_time = time.time()
-                # calculate response time
-                response_time = round(end_time - start_time, 3)
 
             # removing the sources from the answer for keyword extraction
-            main_answer = answer.split("\n\nSources:")[0].strip()
-            total_text = prompt + " " + main_answer
-            extract_keywords(total_text)
+            # main_answer = answer.split("\n\nSources:")[0].strip()
+            # total_text = prompt + " " + main_answer
+            # extract_keywords(total_text)
 
-            # adding response time to the statistics
-            db_client.add_statistic("response_time", response_time)
             if sources == []:
                 st.error(f"{answer}")
             else:
