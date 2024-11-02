@@ -64,7 +64,11 @@ Before you begin, ensure you have the following installed on your machine:
 
    - Go to [Team1 QA](https://csusb.instructure.com/courses/43192/discussion_topics/419701) and copy the MISTRAL API key
    - Paste the API key at the end of the previous instruction
-   - Then run the command
+   - Your command should look like this:
+   ```bash
+   docker build -t team1_app:latest . --build-arg MISTRAL=APIKEYHERE
+   ```
+   - Run the command
 
 6. **Run the Docker container**
 
