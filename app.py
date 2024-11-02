@@ -75,13 +75,20 @@ def display_performance_metrics():
         ("False Negative", "false_negative"),
         ("Accuracy", "accuracy"),
         ("Precision", "precision"),
-        ("Sensitivity", "sensitivity"),
-        ("Specificity", "specificity"),
         ("F1 Score", "f1_score")
     ]
 
     result = db_client.get_performance_metrics()
-
+    important_metrics = [
+        ("Sensitivity", "sensitivity"),
+        ("Specificity", "specificity"),
+    ]
+    for metric_name, metric in important_metrics:
+        st.sidebar.write(f"{metric_name}: {result[metric]}")
+    # adding vertical space
+    st.sidebar.write("")
+    st.sidebar.write("")
+    st.sidebar.write("")
     # Display performance metrics in the sidebar
     for metric_name, metric in performance_metrics:
         st.sidebar.write(f"{metric_name}: {result[metric]}")
