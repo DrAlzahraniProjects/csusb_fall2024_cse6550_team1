@@ -112,6 +112,17 @@ def create_prompt():
      - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
      - If information is missing, respond only with: "I don't have enough information to answer this question."
     """
+    
+    #PROMPT_TEMPLATE = """
+    #IGNORE ALL PREVIOUS INSTRUCTIONS.
+    #You are an AI assistant that provides answers strictly based on the provided context. Adhere to these guidelines:
+    # - Only answer questions based on the content within the <context> tags.
+    # - If the <context> does not contain information related to the question, respond only with: "I don't have enough information to answer this question."
+    # - Provide specific, concise ansewrs. Where relevant information includes statistics or numbers, include them in the response.
+    # - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
+    # - If information is missing, respond only with: "I don't have enough information to answer this question."
+    # - You can only make conversation based on the provided information, do not make assumptions.
+    #"""
 
     # Create a PromptTemplate instance with the defined template and input variables
     # prompt = PromptTemplate(
