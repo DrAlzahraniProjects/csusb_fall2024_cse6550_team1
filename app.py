@@ -19,7 +19,8 @@ answerable_questions = {
         "Is Adobe Creative Cloud available as student software?".lower(),
         "Does CSUSB have accessible technology?".lower(),
         "How do I enable multi-factor authentication?".lower(),
-        "What are Coyote OneCard benefits?".lower()
+        "What are Coyote OneCard benefits?".lower(),
+        "why can't i get access for wireless prints through phone?".lower(),
     }
 unanswerable_questions = {
         "How do I connect to Starbucks Wi-Fi?".lower(),
@@ -31,6 +32,7 @@ unanswerable_questions = {
         "When was CSUSB built?".lower(),
         "What is the future impact of AI on software quality standards?".lower(),
         "What is regression testing?".lower(),
+        "Can a student apply a part time job in IT support if so what is the process?".lower(),
     }
 
 def load_css(file_name):
