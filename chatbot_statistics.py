@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 
+PERFORMANCE_METRICS_ROW_ID = 1
 class DatabaseClient:
     def __init__(self, db_path="chatbot_stats.db"):
         self.connection = sqlite3.connect(db_path)
@@ -55,17 +56,28 @@ class DatabaseClient:
             ''')
 
     def increment_performance_metric(self, metric, increment_value=1):
+        """
+        Increment a performance metric by a given value
+
+        Args:
+            metric (str): The metric to be incremented.
+            increment_value (int, optional): The amount to increment the metric by. Defaults to 1.
+        """
+
+        valid_metrics = {'true_positive', 'true_negative', 'false_positive', 'false_negative'}
+        if metric not in valid_metrics:
+            raise ValueError(f"Invalid metric: {metric}. Valid metrics are {valid_metrics}")
+
         # Increment a metric by a given value
         with self.connection:
             self.connection.execute(f'''
                 UPDATE performance_metrics
                 SET {metric} = CASE
-                    WHEN {metric} + {increment_value} < 0 THEN 0
-                    ELSE {metric} + {increment_value}
+                    WHEN {metric} + ? < 0 THEN 0
+                    ELSE {metric} + ?
                 END
-                WHERE id = 1
-            ''')
-    
+                WHERE id = ?
+            ''', (increment_value, increment_value, PERFORMANCE_METRICS_ROW_ID))
 
     def safe_division(self, numerator, denominator, default=None):
         # Perform division and return a default value if the denominator is zero
@@ -95,8 +107,8 @@ class DatabaseClient:
             self.connection.execute('''
                 UPDATE performance_metrics
                 SET accuracy = ?, precision = ?, sensitivity = ?, specificity = ?, f1_score = ?
-                WHERE id = 1
-            ''', (accuracy, precision, sensitivity, specificity, f1_score))
+                WHERE id = ?
+            ''', (accuracy, precision, sensitivity, specificity, f1_score, PERFORMANCE_METRICS_ROW_ID))
 
 
     def get_performance_metrics(self, columns='*'):
@@ -110,10 +122,12 @@ class DatabaseClient:
         cursor.row_factory = sqlite3.Row
         cursor.execute(f'''
             SELECT {columns} FROM performance_metrics
-            WHERE id = 1
-        ''')
-        result = cursor.fetchone() 
-        return result
+            WHERE id = ?
+        ''', (PERFORMANCE_METRICS_ROW_ID,))
+        result = cursor.fetchone()
+        if not result:
+            return {}
+        return dict(result)
     
     def reset_performance_metrics(self):
         """
@@ -123,8 +137,8 @@ class DatabaseClient:
             self.connection.execute('''
                 UPDATE performance_metrics
                 SET true_positive = 0, true_negative = 0, false_positive = 0, false_negative = 0, accuracy = 0.0, precision = 0.0, sensitivity = 0.0, specificity = 0.0, f1_score = 0.0
-                WHERE id = 1
-            ''')
+                WHERE id = ?
+            ''', (PERFORMANCE_METRICS_ROW_ID))
 
     def add_statistic(self, statistic, value = 0):
         # Insert a statistic entry
