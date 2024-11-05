@@ -110,7 +110,7 @@ def display_performance_metrics():
     }
     df = pd.DataFrame(data).transpose()
     # Apply the coloring function to each cell in the DataFrame
-    styled_df = df.style.applymap(color_cells)
+    styled_df = df.style.map(color_cells)
     st.sidebar.write(styled_df)
 
 
