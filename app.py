@@ -211,7 +211,9 @@ def main():
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
                 # generate response from RAG model
-                answer, sources = query_rag(prompt)
+                if not os.environ.get("QUERY_RUNNING", None):
+                    os.environ["QUERY_RUNNING"] = user_message_id
+                    answer, sources = query_rag(prompt)
 
             # removing the sources from the answer for keyword extraction
             # main_answer = answer.split("\n\nSources:")[0].strip()
@@ -222,7 +224,24 @@ def main():
                 st.error(f"{answer}")
             else:
                 st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
+                del os.environ["QUERY_RUNNING"]
                 st.rerun()
+    
+    if os.environ.get("QUERY_RUNNING", None):
+        response_placeholder = st.empty()
+        with response_placeholder.container():
+            with st.spinner('Generating Response...'):
+                user_message_id = os.environ.get("QUERY_RUNNING")
+                assistant_message_id = user_message_id.replace("user", "assistant", 1)
+                prompt = st.session_state.messages[user_message_id]["content"]
+                # generate response from RAG model
+                answer, sources = query_rag(prompt)
+        if sources == []:
+            st.error(f"{answer}")
+        else:
+            st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
+            del os.environ["QUERY_RUNNING"]
+            st.rerun()
 
 if __name__ == "__main__":
     # If streamlit instance is running
