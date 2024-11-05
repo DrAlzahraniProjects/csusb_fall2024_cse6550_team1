@@ -13,3 +13,4 @@ mistralai
 pymilvus
 pydantic==2.5.2
 yake
+pandas

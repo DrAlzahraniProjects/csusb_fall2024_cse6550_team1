@@ -138,7 +138,7 @@ class DatabaseClient:
                 UPDATE performance_metrics
                 SET true_positive = 0, true_negative = 0, false_positive = 0, false_negative = 0, accuracy = 0.0, precision = 0.0, sensitivity = 0.0, specificity = 0.0, f1_score = 0.0
                 WHERE id = ?
-            ''', (PERFORMANCE_METRICS_ROW_ID))
+            ''', (PERFORMANCE_METRICS_ROW_ID,))
 
     def add_statistic(self, statistic, value = 0):
         # Insert a statistic entry
