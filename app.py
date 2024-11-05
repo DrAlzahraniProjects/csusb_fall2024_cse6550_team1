@@ -5,6 +5,7 @@ import subprocess
 from RAG import initialize_milvus, query_rag
 import time
 import yake
+import pandas as pd
 from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
 
 db_client = DatabaseClient()
@@ -64,37 +65,69 @@ def extract_keywords(text):
     keywords_list = [keyword.lower() for keyword, _ in keywords if keyword.lower() not in ignore_words]
     # db_client.insert_common_keywords(keywords_list)
 
+def color_cells(val):
+    """
+    Apply color based on cell content or other logic.
+
+    Args:
+        val (str): The value in the cell
+
+    Returns:
+        str : The color to apply to the cell
+    """
+    if "TP" in val:
+        return "background-color: #f1f1f1;color:#444444"
+    elif "TN" in val:
+        return "background-color: #f1f1f1;color:#444444"
+    return "background-color: #f9f9f9;color:#444444"  # Default color
+
         
 def display_performance_metrics():
-    """Display the performance metrics in the sidebar."""
-
+    """
+    Display performance metrics in the sidebar.
+    """
     st.sidebar.title("Confusion Matrix")
-
-    performance_metrics = [
-        ("True Positive", "true_positive"),
-        ("True Negative", "true_negative"),
-        ("False Positive", "false_positive"),
-        ("False Negative", "false_negative"),
-        ("Accuracy", "accuracy"),
-        ("Precision", "precision"),
-        ("F1 Score", "f1_score")
-    ]
-
-    result = db_client.get_performance_metrics()
     important_metrics = [
         ("Sensitivity", "sensitivity"),
         ("Specificity", "specificity"),
     ]
-    for metric_name, metric in important_metrics:
-        st.sidebar.write(f"{metric_name}: {result[metric]}")
-    # adding vertical space
+    result = db_client.get_performance_metrics()
+    imp_container = st.sidebar.empty()
+    with imp_container.container():
+        for metric_name, metric in important_metrics:
+            st.markdown(f"<div class='important-metrics'>{metric_name}: {result[metric]}</div>", unsafe_allow_html=True)
     st.sidebar.write("")
-    st.sidebar.write("")
-    st.sidebar.write("")
-    # Display performance metrics in the sidebar
-    for metric_name, metric in performance_metrics:
-        st.sidebar.write(f"{metric_name}: {result[metric]}")
-    
+    # table for confusion matrix
+    data = {
+        'Actual Ans': {
+            'Pred. Ans': f"{result['true_positive']} (TP)",
+            'Pred. Unans': f"{result['false_negative']} (FN)"
+        },
+        'Actual Unans': {
+            'Pred. Ans': f"{result['false_positive']} (FP)",
+            'Pred. Unans': f"{result['true_negative']} (TN)"
+        },
+    }
+    df = pd.DataFrame(data).transpose()
+    # Apply the coloring function to each cell in the DataFrame
+    styled_df = df.style.applymap(color_cells)
+    st.sidebar.write(styled_df)
+
+
+    # Normal metrics
+    performance_metrics = [
+        ("Accuracy", "accuracy"),
+        ("Precision", "precision"),
+        ("F1 Score", "f1_score")
+    ]
+    normal_container = st.sidebar.empty()
+    with normal_container.container():
+        for metric_name, metric in performance_metrics:
+            st.markdown(f"<div class='normal-metrics'>{metric_name}: {result[metric]}</div>", unsafe_allow_html=True)
+    # # Display performance metrics in the sidebar
+    # for metric_name, metric in performance_metrics:
+    #     st.sidebar.write(f"{metric_name}: {result[metric]}")
+    # Reset Button
     if st.sidebar.button("Reset"):
         db_client.reset_performance_metrics()
         st.rerun()
@@ -158,7 +191,9 @@ def handle_feedback(assistant_message_id):
  
             
 def main():
-    """Main Streamlit app logic."""
+    """
+    Main function to run the app
+    """
     header = st.container()
     header.write("""<div class='chat-title'>Team 1 Support Chatbot</div>""", unsafe_allow_html=True)
     header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
