@@ -27,6 +27,24 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
     float: right;
 }
 
+.important-metrics {
+    border: 1px solid #1fa1e566;
+    background-color:#a5eafc33;
+    color:#096d99aa;
+    border-radius:10px;
+    padding:10px;
+    margin-bottom:10px;
+}
+
+.normal-metrics {
+    border: 1px solid #aaaaaa;
+    background-color:#f3f3f3;
+    color:#6f6f6f;
+    border-radius:10px;
+    padding:10px;
+    margin-bottom:10px;
+}
+
 .assistant-message {
     text-align: left;
     /* padding: 10px; */
