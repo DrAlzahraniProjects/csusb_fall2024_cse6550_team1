@@ -7,11 +7,13 @@ class DatabaseClient:
         self.connection = sqlite3.connect(db_path)
 
     def create_stats_table(self):
-        # Create a table for statistics if it doesn't exist
+        """
+        Create a table for statistics if it doesn't exist
+        """
         with self.connection:
             self.connection.execute("DROP TABLE IF EXISTS statistics;")  # Drop the table if it exists
             self.connection.execute('''
-                CREATE TABLE IF NOT EXISTS statistics (
+                CREATE TABLE statistics (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT,
                     statistic TEXT,
@@ -20,11 +22,13 @@ class DatabaseClient:
             ''')
 
     def create_common_keywords_table(self):
-        # Create a table for common keywords if it doesn't exist
+        """
+        Create a table for common keywords if it doesn't exist
+        """
         with self.connection:
             self.connection.execute("DROP TABLE IF EXISTS common_keywords;")  # Drop the table if it exists
             self.connection.execute('''
-                CREATE TABLE IF NOT EXISTS common_keywords (
+                CREATE TABLE common_keywords (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     keyword TEXT UNIQUE,
                     count INTEGER
@@ -32,11 +36,13 @@ class DatabaseClient:
             ''')
         
     def create_performance_metrics_table(self):
-        # Create a table for metrics if it doesn't exist
+        """
+        Create a table for performance metrics if it doesn't exist
+        """
         with self.connection:
             self.connection.execute("DROP TABLE IF EXISTS performance_metrics;")
             self.connection.execute('''
-            CREATE TABLE IF NOT EXISTS performance_metrics (
+            CREATE TABLE performance_metrics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 true_positive INTEGER,
                 true_negative INTEGER,
@@ -49,13 +55,18 @@ class DatabaseClient:
                 f1_score REAL
             )
         ''')
-        # Insert a default row if the table is empty
-            self.connection.execute('''
-                INSERT INTO performance_metrics (id, true_positive, true_negative, false_positive, false_negative, accuracy, precision, sensitivity, specificity, f1_score)
-                VALUES (1, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0)
-            ''')
 
-    def increment_performance_metric(self, metric, increment_value=1):
+    def insert_default_performance_metrics(self):
+        """
+        Insert a default row of performance metrics into the database
+        """
+        with self.connection:
+            self.connection.execute('''
+                    INSERT INTO performance_metrics (id, true_positive, true_negative, false_positive, false_negative, accuracy, precision, sensitivity, specificity, f1_score)
+                    VALUES (1, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0)
+                ''')
+
+    def increment_performance_metric(self, metric: str, increment_value: int = 1):
         """
         Increment a performance metric by a given value
 
@@ -79,8 +90,18 @@ class DatabaseClient:
                 WHERE id = ?
             ''', (increment_value, increment_value, PERFORMANCE_METRICS_ROW_ID))
 
-    def safe_division(self, numerator, denominator, default=None):
-        # Perform division and return a default value if the denominator is zero
+    def safe_divide(self, numerator: int, denominator: int, default: float = None):
+        """
+        Safely divide two numbers and return the result. If the denominator is zero, return the default value.
+
+        Args:
+            numerator (int): The numerator of the division.
+            denominator (int): The denominator of the division.
+            default (float, optional): The default value to return if the denominator is zero. Defaults to None.
+
+        Returns:
+            float: The result of the division, or None if the denominator is zero
+        """
         if denominator == 0:
             return default
         return round(numerator / denominator, 3)
@@ -88,20 +109,17 @@ class DatabaseClient:
 
     def update_performance_metrics(self):
         """
-        Update the performance metrics with the provided values
-
-        Args:
-            metrics (dict): A dictionary containing the performance metrics
+        Update the performance metrics based on the current values of true positive, true negative, false positive, and false negative
         """
         metrics = self.get_performance_metrics('true_positive, true_negative, false_positive, false_negative')
-        accuracy = self.safe_division(metrics['true_positive'] + metrics['true_negative'], metrics['true_positive'] + metrics['true_negative'] + metrics['false_positive'] + metrics['false_negative'])
-        precision = self.safe_division(metrics['true_positive'], metrics['true_positive'] + metrics['false_positive'])
-        sensitivity = self.safe_division(metrics['true_positive'], metrics['true_positive'] + metrics['false_negative'])
-        specificity = self.safe_division(metrics['true_negative'], metrics['true_negative'] + metrics['false_positive'])
+        accuracy = self.safe_divide(metrics['true_positive'] + metrics['true_negative'], metrics['true_positive'] + metrics['true_negative'] + metrics['false_positive'] + metrics['false_negative'])
+        precision = self.safe_divide(metrics['true_positive'], metrics['true_positive'] + metrics['false_positive'])
+        sensitivity = self.safe_divide(metrics['true_positive'], metrics['true_positive'] + metrics['false_negative'])
+        specificity = self.safe_divide(metrics['true_negative'], metrics['true_negative'] + metrics['false_positive'])
         if precision is None or sensitivity is None:
             f1_score = None
         else:
-            f1_score = self.safe_division(2 * precision * sensitivity, precision + sensitivity)
+            f1_score = self.safe_divide(2 * precision * sensitivity, precision + sensitivity)
 
         with self.connection:
             self.connection.execute('''
@@ -111,17 +129,22 @@ class DatabaseClient:
             ''', (accuracy, precision, sensitivity, specificity, f1_score, PERFORMANCE_METRICS_ROW_ID))
 
 
-    def get_performance_metrics(self, columns='*'):
+    def get_performance_metrics(self, columns: str='*'):
         """
         Fetch the performance metrics from the database
 
         Returns:
-            result(dict): A dictionary containing the performance metrics
+            dict: A dictionary containing the performance metrics
         """
+        allowed_columns = ["true_positive", "true_negative", "false_positive", "false_negative", "accuracy", "precision", "sensitivity", "specificity", "f1_score"]
+        if columns == '*':
+            validated_columns = columns
+        else:
+            validated_columns = ", ".join([column for column in columns.split(',') if column.strip() in allowed_columns])
         cursor = self.connection.cursor()
         cursor.row_factory = sqlite3.Row
         cursor.execute(f'''
-            SELECT {columns} FROM performance_metrics
+            SELECT {validated_columns} FROM performance_metrics
             WHERE id = ?
         ''', (PERFORMANCE_METRICS_ROW_ID,))
         result = cursor.fetchone()
