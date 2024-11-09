@@ -76,7 +76,7 @@ RUN jupyter notebook --generate-config && \
     echo "c.NotebookApp.ip = '0.0.0.0'" >> /root/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.port = 6001" >> /root/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.open_browser = False" >> /root/.jupyter/jupyter_notebook_config.py && \
-	echo "c.NotebookApp.notebook_dir = '/app/juypter'" >> /root/.jupyter/jupyter_notebook_config.py && \
+	echo "c.NotebookApp.notebook_dir = '/app/jupyter'" >> /root/.jupyter/jupyter_notebook_config.py && \
     echo "c.ContentsManager.hide_globs = ['milvus']" >> /root/.jupyter/jupyter_notebook_config.py 
 
 # Add the conda environment's bin directory to PATH
