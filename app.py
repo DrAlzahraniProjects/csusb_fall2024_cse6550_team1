@@ -207,6 +207,7 @@ def main():
             # db_client.create_stats_table()
             # db_client.create_common_keywords_table()
             db_client.create_performance_metrics_table()
+            db_client.insert_default_performance_metrics()
             vector_store = initialize_milvus()
             
     # Render existing messages
