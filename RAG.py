@@ -10,6 +10,7 @@ from langchain_mistralai.chat_models import ChatMistralAI
 #from langchain_cohere import ChatCohere
 from langchain_milvus import Milvus
 from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
+from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains import create_retrieval_chain
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -177,9 +178,37 @@ def load_documents_from_web():
         prevent_outside=True,
         base_url=CORPUS_SOURCE
         )
-    documents = loader.load()
-    
-    return documents
+    raw_documents = loader.load()
+
+    # Ensure documents are cleaned
+    cleaned_documents = []
+    for doc in raw_documents:
+        cleaned_text = clean_text_from_html(doc.page_content)
+        cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
+
+    return cleaned_documents
+
+def clean_text_from_html(html_content):
+    """Clean HTML content to extract main text."""
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Remove unnecessary elements
+    for script_or_style in soup(['script', 'style', 'header', 'footer', 'nav']):
+        script_or_style.decompose()
+
+    main_content = soup.find('main')
+    if main_content:
+        content = main_content.get_text(separator='\n')
+    else:
+        content = soup.get_text(separator='\n')
+
+    return clean_text(content)
+
+def clean_text(text):
+    """Further clean the text by removing extra whitespace and new lines."""
+    lines = (line.strip() for line in text.splitlines())
+    cleaned_lines = [line for line in lines if line]
+    return '\n'.join(cleaned_lines)
 
 def split_documents(documents):
     """
