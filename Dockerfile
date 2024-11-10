@@ -53,8 +53,8 @@ COPY requirements.txt /app/requirements.txt
 RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 
 # Install Python packages not on Mamba DB
-#RUN pip install -qU cython
-RUN pip install -qU langchain_milvus #nemo-curator nemoguardrails
+RUN pip install -qU cython
+RUN pip install -qU langchain_milvus nemo-curator nemoguardrails
 
 
 # Copy the current directory contents into the container at /app
@@ -76,7 +76,7 @@ RUN jupyter notebook --generate-config && \
     echo "c.NotebookApp.ip = '0.0.0.0'" >> /root/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.port = 6001" >> /root/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.open_browser = False" >> /root/.jupyter/jupyter_notebook_config.py && \
-	echo "c.NotebookApp.notebook_dir = '/app/juypter'" >> /root/.jupyter/jupyter_notebook_config.py && \
+	echo "c.NotebookApp.notebook_dir = '/app/jupyter'" >> /root/.jupyter/jupyter_notebook_config.py && \
     echo "c.ContentsManager.hide_globs = ['milvus']" >> /root/.jupyter/jupyter_notebook_config.py 
 
 # Add the conda environment's bin directory to PATH
