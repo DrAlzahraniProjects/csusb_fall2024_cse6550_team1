@@ -8,6 +8,7 @@ This repository contains the IT Support Chatbot project developed by **CSUSB Fal
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Accessing the Application](#accessing-the-application)
+- [SQA for IT Chatbot](#software-quality-assurance-for-the-it-chatbot)
 - [Troubleshooting](#troubleshooting)
 - [Contributors](#contributors)
 
@@ -90,14 +91,86 @@ You can access the Jupyter Notebook at:
 
 ---
 
-### Troubleshooting
+## Software Quality Assurance for the IT Chatbot
+
+This section highlights the types of questions the chatbot can and cannot answer.
+
+- [Answerable Questions](#answerable)
+- [Unanswerable Questions](#unanswerable)
+
+
+### Answerable
+```plaintext
+How can I contact ITS? 
+```
+```plaintext
+How can I connect to the campus Wi-Fi?
+```
+```plaintext
+Who are the Co-Chairs for the 2024/2025 Committee?
+```
+```plaintext
+Where are all the printers located?
+```
+```plaintext
+What are the CoyoteLabs virtual computer lab?
+```
+```plaintext
+Is Adobe Creative Cloud available as student software?
+```
+```plaintext
+Does CSUSB have accessible technology?
+```
+```plaintext
+How do I enable multi-factor authorization?
+```
+```plaintext
+What are Coyote OneCard benefits?
+```
+```plaintext
+Why can't I get access for wireless prints through phone?
+```
+
+### Unanswerable
+```plaintext
+How do I connect to Starbucks Wi-Fi? 
+```
+```plaintext
+What is a smart contract?
+```
+```plaintext
+Can you write code for a basic Python script?
+```
+```plaintext
+Who is the dean of CSUSB?
+```
+```plaintext
+What class does Dr. Alzahrani teach?
+```
+```plaintext
+Who is Hironori Washizaki?
+```
+```plaintext
+When was CSUSB built?
+```
+```plaintext
+What is the future impact of AI on software quality standards?
+```
+```plaintext
+What is regression testing?
+```
+```plaintext
+Can a student apply a part time job in IT support if so what is the process?
+```
+
+## Troubleshooting
 
 - If you encounter issues while building or running the container, ensure that Docker is installed and running correctly.
 - Ensure the port `5001` is not being used by another application.
 
 ---
 
-### Contributors
+## Contributors
 
 - CSUSB Fall 2024 CSE6550 Team 1
 
