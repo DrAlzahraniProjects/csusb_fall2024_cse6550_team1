@@ -79,8 +79,9 @@ Before you begin, ensure you have the following installed on your machine:
    docker run -d -p 5001:5001 -p 6001:6001 team1_app
    ```
 
-### Accessing the Application
+## Accessing the Application
 
+### Accessing locally through Docker 
 Once the Docker container is running, you can access the IT Support Chatbot through your browser at:
 
 [http://localhost:5001/team1](http://localhost:5001/team1) or [http://127.0.0.1:5001/team1](http://127.0.0.1:5001/team1)
@@ -89,7 +90,14 @@ You can access the Jupyter Notebook at:
 
 [http://localhost:6001/team1/jupyter](http://localhost:6001/team1/jupyter) or [http://127.0.0.1:6001/team1/jupyter](http://127.0.0.1:6001/team1/jupyter)
 
----
+### Accessing through the CSE web server
+Access through the CSE web server at:
+
+[https://sec.cse.csusb.edu/team1](https://sec.cse.csusb.edu/team1)
+
+You can access the Jupyter Notebook at:
+
+[https://sec.cse.csusb.edu/team1/jupyter](https://sec.cse.csusb.edu/team1/jupyter)
 
 ## Software Quality Assurance for the IT Chatbot
 
