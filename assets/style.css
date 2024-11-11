@@ -15,16 +15,30 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
     top: 2.875rem;
 }
 
+.user-message, .assistant-message {
+    max-width: 90%;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
 .user-message {
     text-align: right;
     background-color: #f1f1f1;
     color: black;
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    max-width: 70%;
-    display: inline-block;
     float: right;
+}
+
+.assistant-message {
+    text-align: left;
+    background-color: #e8f4ff;
+    color: black;
+    float: left;
+}
+
+.stMainBlockContainer {
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
 .important-metrics {
@@ -45,12 +59,6 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
     margin-bottom:10px;
 }
 
-.assistant-message {
-    text-align: left;
-    /* padding: 10px; */
-    border-radius: 10px;
-    /* margin-bottom: 10px; */
-    width: 70%;
-    float: left;
-    clear: both;
+.st-emotion-cache-arzcut.ea3mdgi2 {
+    max-width: 1100px;
 }
