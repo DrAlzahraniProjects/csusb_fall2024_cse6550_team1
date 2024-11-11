@@ -99,13 +99,13 @@ def display_performance_metrics():
     st.sidebar.write("")
     # table for confusion matrix
     data = {
-        'Actual Ans': {
-            'Pred. Ans': f"{result['true_positive']} (TP)",
-            'Pred. Unans': f"{result['false_negative']} (FN)"
+        'Actual +': {
+            'Predicted +': f"{result['true_positive']} (TP)",
+            'Predicted -': f"{result['false_negative']} (FN)"
         },
-        'Actual Unans': {
-            'Pred. Ans': f"{result['false_positive']} (FP)",
-            'Pred. Unans': f"{result['true_negative']} (TN)"
+        'Actual -': {
+            'Predicted +': f"{result['false_positive']} (FP)",
+            'Predicted -': f"{result['true_negative']} (TN)"
         },
     }
     df = pd.DataFrame(data).transpose()
