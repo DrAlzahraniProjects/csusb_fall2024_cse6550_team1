@@ -8,6 +8,7 @@ This repository contains the IT Support Chatbot project developed by **CSUSB Fal
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Accessing the Application](#accessing-the-application)
+- [SQA for IT Chatbot](#software-quality-assurance-for-the-it-chatbot)
 - [Troubleshooting](#troubleshooting)
 - [Contributors](#contributors)
 
@@ -94,8 +95,8 @@ You can access the Jupyter Notebook at:
 
 This section highlights the types of questions the chatbot can and cannot answer.
 
-- [Answerable Questions](...)
-- [Unanswerable Questions](...)
+- [Answerable Questions](#answerable)
+- [Unanswerable Questions](#unanswerable)
 
 
 ### Answerable
@@ -162,14 +163,14 @@ What is regression testing?
 Can a student apply a part time job in IT support if so what is the process?
 ```
 
-### Troubleshooting
+## Troubleshooting
 
 - If you encounter issues while building or running the container, ensure that Docker is installed and running correctly.
 - Ensure the port `5001` is not being used by another application.
 
 ---
 
-### Contributors
+## Contributors
 
 - CSUSB Fall 2024 CSE6550 Team 1
 
