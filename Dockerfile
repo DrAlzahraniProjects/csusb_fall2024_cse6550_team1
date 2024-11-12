@@ -43,6 +43,17 @@ ENV PATH=/opt/miniforge/bin:$PATH
 # Create a new environment with Python 3.10
 RUN mamba create -n team1_env python=3.10 -y
 
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+# Clone Triton repository from GitHub and install required build dependencies
+# Then, install Triton from source using pip
+	RUN python3 -m pip install --upgrade pip && \
+    git clone https://github.com/triton-lang/triton.git /tmp/triton && \
+    cd /tmp/triton/python && \
+    python3 -m pip install ninja cmake wheel pybind11 && \
+    python3 -m pip install -e python && \
+    rm -rf /tmp/triton
+
 # Activate the new environment
 SHELL ["mamba", "run", "-n", "team1_env", "/bin/bash", "-c"]
 
@@ -77,7 +88,7 @@ RUN jupyter notebook --generate-config && \
     echo "c.NotebookApp.port = 6001" >> /root/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.open_browser = False" >> /root/.jupyter/jupyter_notebook_config.py && \
 	echo "c.NotebookApp.notebook_dir = '/app/jupyter'" >> /root/.jupyter/jupyter_notebook_config.py && \
-    echo "c.ContentsManager.hide_globs = ['milvus']" >> /root/.jupyter/jupyter_notebook_config.py 
+    echo "c.ContentsManager.hide_globs = ['milvus']" >> /root/.jupyter/jupyter_notebook_config.py
 
 # Add the conda environment's bin directory to PATH
 ENV PATH=/opt/miniforge/envs/team1_env/bin:$PATH
