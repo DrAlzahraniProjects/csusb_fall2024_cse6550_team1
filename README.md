@@ -89,6 +89,10 @@ You can access the Jupyter Notebook at:
 
 [http://localhost:6001/team1/jupyter](http://localhost:6001/team1/jupyter) or [http://127.0.0.1:6001/team1/jupyter](http://127.0.0.1:6001/team1/jupyter)
 
+You can also access the IT Support Chatbot deployed on the CSE server at:
+
+[https://sec.cse.csusb.edu/team1](https://sec.cse.csusb.edu/team1/)
+
 ---
 
 ## Software Quality Assurance for the IT Chatbot
