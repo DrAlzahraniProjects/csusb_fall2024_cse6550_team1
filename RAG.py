@@ -23,7 +23,7 @@ MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 
 # MILVUS_URI = "./milvus/milvus_vector.db"
 MILVUS_URI = "milvus/milvus_vector.db"
-MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 
 def get_embedding_function():
     """
