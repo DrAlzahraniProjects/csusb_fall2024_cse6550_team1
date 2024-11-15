@@ -101,75 +101,22 @@ You can access the Jupyter Notebook at:
 
 ## Software Quality Assurance for the IT Chatbot
 
-This section highlights the types of questions the chatbot can and cannot answer.
-
-- [Answerable Questions](#answerable)
-- [Unanswerable Questions](#unanswerable)
+This section highlights the sets of questions the chatbot can and cannot answer.
 
 
-### Answerable
-```plaintext
-How can I contact ITS? 
-```
-```plaintext
-How can I connect to the campus Wi-Fi?
-```
-```plaintext
-Who are the Co-Chairs for the 2024/2025 Committee?
-```
-```plaintext
-Where are all the printers located?
-```
-```plaintext
-What are the CoyoteLabs virtual computer lab?
-```
-```plaintext
-Is Adobe Creative Cloud available as student software?
-```
-```plaintext
-Does CSUSB have accessible technology?
-```
-```plaintext
-How do I enable multi-factor authorization?
-```
-```plaintext
-What are Coyote OneCard benefits?
-```
-```plaintext
-Why can't I get access for wireless prints through phone?
-```
+| **Answerable**                                      | **Unanswerable**                                 |
+|-----------------------------------------------------|--------------------------------------------------|
+| How can I contact ITS?                              | How do I connect to Starbucks Wi-Fi?             |
+| How can I connect to the campus Wi-Fi?              | What is a smart contract?                        |
+| Who are the Co-Chairs for the 2024/2025 Committee?  | Can you write code for a basic Python script?     |
+| Where are all the printers located?                 | Who is the dean of CSUSB?                        |
+| What are the CoyoteLabs virtual computer lab?       | What class does Dr. Alzahrani teach?             |
+| Is Adobe Creative Cloud available as student software? | Who is Hironori Washizaki?                    |
+| Does CSUSB have accessible technology?              | When was CSUSB built?                            |
+| How do I enable multi-factor authorization?         | What is the future impact of AI on software quality standards? |
+| What are Coyote OneCard benefits?                   | What is regression testing?                     |
+| Why can't I get access for wireless prints through phone? | Can a student apply a part-time job in IT support if so what is the process? |
 
-### Unanswerable
-```plaintext
-How do I connect to Starbucks Wi-Fi? 
-```
-```plaintext
-What is a smart contract?
-```
-```plaintext
-Can you write code for a basic Python script?
-```
-```plaintext
-Who is the dean of CSUSB?
-```
-```plaintext
-What class does Dr. Alzahrani teach?
-```
-```plaintext
-Who is Hironori Washizaki?
-```
-```plaintext
-When was CSUSB built?
-```
-```plaintext
-What is the future impact of AI on software quality standards?
-```
-```plaintext
-What is regression testing?
-```
-```plaintext
-Can a student apply a part time job in IT support if so what is the process?
-```
 
 ## Troubleshooting
 
