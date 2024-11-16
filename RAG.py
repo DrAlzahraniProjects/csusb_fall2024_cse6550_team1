@@ -36,6 +36,57 @@ def get_embedding_function():
     embedding_function = HuggingFaceEmbeddings(model_name=MODEL_NAME)
     return embedding_function
 
+def recheck_prompt():
+    """
+    Create a prompt template for the RAG model
+
+    Returns:
+        PromptTemplate: The prompt template for the RAG model
+    """
+    # Define the prompt template
+    PROMPT_TEMPLATE = """
+    You are an AI assistant tasked with verifying if an answer is fully supported by the given context. Follow these instructions
+    Instructions:
+    - Check if the answer in the <answer> tags is entirely supported by the information in the <context> tags. Do not use external knowledge or assumptions.
+    - If the <answer> is fully supported by the <context>, respond with "True".
+    - If any part of the <answer> is not supported by the <context>, respond with "False".
+    - Your response must be only "True" or "False".
+    """
+
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", PROMPT_TEMPLATE),
+        ("human", "<answer>{input}</answer>\n\n<context>{context}</context>"),
+    ])
+    print(" Rechecking prompt Created")
+
+    return prompt
+
+def is_answer_relevant(model, answer, context):
+    """
+    Call the Mistral LLM to check if the answer is based on the given context.
+
+    Args:
+        answer (str): The generated answer to verify.
+        context (str): The context used to generate the answer.
+
+    Returns:
+        str: The response from the LLM after rechecking.
+    """
+    time.sleep(1)
+    prompt = recheck_prompt()
+
+    llm_input = prompt.format_messages(
+        input=answer,
+        context=context
+    )
+    recheck_response = model(llm_input)
+    print("Recheck Response: ", recheck_response)
+    recheck_output = recheck_response.content
+
+    if "true" in recheck_output.lower() :
+        return True
+    return False
+
 def query_rag(query):
     """
     Entry point for the RAG model to generate an answer to a given query
@@ -71,6 +122,7 @@ def query_rag(query):
         # Extract metadata from the most relevant document
         most_relevant_document = retrieved_documents[0]
         source = most_relevant_document.metadata.get("source", "Unknown")
+        score = most_relevant_document.metadata.get("score", None)
         title = most_relevant_document.metadata.get("title", "Untitled").replace("\n", " ")
 
         print("Most Relevant Document Retrieved")
@@ -82,6 +134,11 @@ def query_rag(query):
         # Add the source to the response if available
         if isinstance(source, str) and source != "Unknown":
             response_text += f"\n\nSource: [{title}]({source})"
+            if score <= 0.4:
+                result = is_answer_relevant(model, response["answer"], most_relevant_document.page_content)
+                if result is False:
+                    response["answer"] = "I don't have enough information to answer this question."
+                    source = None
             print("Response Generated")
         
         return response_text, source
