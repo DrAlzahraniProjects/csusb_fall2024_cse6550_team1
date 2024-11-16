@@ -231,7 +231,7 @@ def main():
                     os.environ["QUERY_RUNNING"] = user_message_id
                     answer, source = query_rag(prompt)
 
-            if source == None:
+            if source is None:
                 st.error(f"{answer}")
             else:
                 st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
@@ -249,7 +249,7 @@ def main():
                 prompt = st.session_state.messages[user_message_id]["content"]
                 # generate response from RAG model
                 answer, source = query_rag(prompt)
-        if source == None:
+        if source is None:
             st.error(f"{answer}")
         else:
             st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
