@@ -18,7 +18,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from pymilvus import connections, utility
 from requests.exceptions import HTTPError
 from httpx import HTTPStatusError
-from retriever import ScoredRetriever
+from retriever import ScoreThresholdRetriever
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
@@ -49,53 +49,49 @@ def query_rag(query):
     Returns:
         str: The answer to the query
     """
-    # Define the model
-    model = ChatMistralAI(model='open-mistral-7b', temperature = 0)
-    print("Model Loaded")
-
-    prompt = create_prompt()
-
-    # Load the vector store and create the retriever
-    vector_store = load_existing_db(uri=MILVUS_URI)
-    retriever = ScoredRetriever(vector_store, score_threshold=0.2, k=3)
-    # retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"score_threshold": 0.8, "k":3})
     try:
-        document_chain = create_stuff_documents_chain(model, prompt)
-        print("Document Chain Created")
+        # Define the model
+        model = ChatMistralAI(model='open-mistral-7b', temperature = 0)
+        print("Model Loaded")
 
+        # Create the prompt and components for the RAG model
+        prompt = create_prompt()
+        vector_store = load_existing_db(uri=MILVUS_URI)
+        retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=3)
+        document_chain = create_stuff_documents_chain(model, prompt)
         retrieval_chain = create_retrieval_chain(retriever, document_chain)
-        print("Retrieval Chain Created")
     
+        # Retrieve the most relevant document based on the query
         retrieved_documents = retriever.get_relevant_documents(query)
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
             return "I don't have enough information to answer this question.", None
 
+        # Extract metadata from the most relevant document
         most_relevant_document = retrieved_documents[0]
-        source = most_relevant_document.metadata.get("source", None)
-        score = most_relevant_document.metadata.get("score", None)
-        title = most_relevant_document.metadata.get("title", None)
-        title = title.replace("\n", " ") if title else None
+        source = most_relevant_document.metadata.get("source", "Unknown")
+        title = most_relevant_document.metadata.get("title", "Untitled").replace("\n", " ")
+
         print("Most Relevant Document Retrieved")
 
+        # Generate a response using retrieval chain
         response = retrieval_chain.invoke({"input": f"{query}"})
+        response_text = response.get("answer", "I couldn't generate a response.")
 
-        if source:
-            # Add the source to the response
-            response["answer"] += f"\n\nSource: [{title}]({source})"
+        # Add the source to the response if available
+        if isinstance(source, str) and source != "Unknown":
+            response_text += f"\n\nSource: [{title}]({source})"
             print("Response Generated")
-        return response["answer"], source
+        
+        return response_text, source
             
     except HTTPStatusError as e:
         print(f"HTTPStatusError: {e}")
         if e.response.status_code == 429:
-            return "I am currently experiencing high traffic. Please try again later.", 0
-        return "I am unable to answer this question at the moment. Please try again later.", 0
+            return "I am currently experiencing high traffic. Please try again later.", None
+        return "I am unable to answer this question at the moment. Please try again later.", None
     
-
-
-
 def create_prompt():
     """
     Create a prompt template for the RAG model
@@ -236,7 +232,7 @@ def vector_store_check(uri):
 
     Args:
         uri (str): Path to the local milvus db
-        
+
     Returns:
         bool: True if the vector store exists, False otherwise
     """
