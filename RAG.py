@@ -1,6 +1,7 @@
 CORPUS_SOURCE = 'https://www.csusb.edu/its'
 
 import os
+import time
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
@@ -17,11 +18,11 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from pymilvus import connections, utility
 from requests.exceptions import HTTPError
 from httpx import HTTPStatusError
+from retriever import ScoreThresholdRetriever
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 
-# MILVUS_URI = "./milvus/milvus_vector.db"
 MILVUS_URI = "milvus/milvus_vector.db"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 
@@ -34,7 +35,6 @@ def get_embedding_function():
     """
     embedding_function = HuggingFaceEmbeddings(model_name=MODEL_NAME)
     return embedding_function
-
 
 def query_rag(query):
     """
@@ -49,53 +49,49 @@ def query_rag(query):
     Returns:
         str: The answer to the query
     """
-    # Define the model
-    model = ChatMistralAI(model='open-mistral-7b', temperature = 0)
-    print("Model Loaded")
-
-    prompt = create_prompt()
-
-    # Load the vector store and create the retriever
-    vector_store = load_existing_db(uri=MILVUS_URI)
-    retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"score_threshold": 0.7, "k":5})
     try:
-        document_chain = create_stuff_documents_chain(model, prompt)
-        print("Document Chain Created")
+        # Define the model
+        model = ChatMistralAI(model='open-mistral-7b', temperature = 0)
+        print("Model Loaded")
 
+        # Create the prompt and components for the RAG model
+        prompt = create_prompt()
+        vector_store = load_existing_db(uri=MILVUS_URI)
+        retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=3)
+        document_chain = create_stuff_documents_chain(model, prompt)
         retrieval_chain = create_retrieval_chain(retriever, document_chain)
-        print("Retrieval Chain Created")
     
-        # Generate a response to the query
+        # Retrieve the most relevant document based on the query
+        retrieved_documents = retriever.get_relevant_documents(query)
+
+        if not retrieved_documents:
+            print("No Relevant Documents Retrieved, so sending default response")
+            return "I don't have enough information to answer this question.", None
+
+        # Extract metadata from the most relevant document
+        most_relevant_document = retrieved_documents[0]
+        source = most_relevant_document.metadata.get("source", "Unknown")
+        title = most_relevant_document.metadata.get("title", "Untitled").replace("\n", " ")
+
+        print("Most Relevant Document Retrieved")
+
+        # Generate a response using retrieval chain
         response = retrieval_chain.invoke({"input": f"{query}"})
+        response_text = response.get("answer", "I couldn't generate a response.")
+
+        # Add the source to the response if available
+        if isinstance(source, str) and source != "Unknown":
+            response_text += f"\n\nSource: [{title}]({source})"
+            print("Response Generated")
+        
+        return response_text, source
+            
     except HTTPStatusError as e:
         print(f"HTTPStatusError: {e}")
         if e.response.status_code == 429:
-            return "I am currently experiencing high traffic. Please try again later.", []
-        return "I am unable to answer this question at the moment. Please try again later.", []
+            return "I am currently experiencing high traffic. Please try again later.", None
+        return "I am unable to answer this question at the moment. Please try again later.", None
     
-    # logic to add sources to the response
-    max_relevant_sources = 4 # number of sources at most to be added to the response
-    all_sources = ""
-    sources = []
-    count = 1
-    for i in range(max_relevant_sources):
-        try:
-            source = response["context"][i].metadata["source"]
-            # check if the source is already added to the list
-            if source not in sources:
-                sources.append(source)
-                all_sources += f"[Source {count}]({source}), "
-                count += 1
-        except IndexError: # if there are no more sources to add
-            break
-    all_sources = all_sources[:-2] # remove the last comma and space
-    response["answer"] += f"\n\nSources: {all_sources}"
-    print("Response Generated")
-
-    return response["answer"], sources
-
-
-
 def create_prompt():
     """
     Create a prompt template for the RAG model
@@ -113,22 +109,6 @@ def create_prompt():
      - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
      - If information is missing, respond only with: "I don't have enough information to answer this question."
     """
-    
-    #PROMPT_TEMPLATE = """
-    #IGNORE ALL PREVIOUS INSTRUCTIONS.
-    #You are an AI assistant that provides answers strictly based on the provided context. Adhere to these guidelines:
-    # - Only answer questions based on the content within the <context> tags.
-    # - If the <context> does not contain information related to the question, respond only with: "I don't have enough information to answer this question."
-    # - Provide specific, concise ansewrs. Where relevant information includes statistics or numbers, include them in the response.
-    # - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
-    # - If information is missing, respond only with: "I don't have enough information to answer this question."
-    # - You can only make conversation based on the provided information, do not make assumptions.
-    #"""
-
-    # Create a PromptTemplate instance with the defined template and input variables
-    # prompt = PromptTemplate(
-    #     template=PROMPT_TEMPLATE, input_variables=["context", "question"]
-    # )
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", PROMPT_TEMPLATE),
@@ -189,7 +169,15 @@ def load_documents_from_web():
     return cleaned_documents
 
 def clean_text_from_html(html_content):
-    """Clean HTML content to extract main text."""
+    """
+    Clean the text from the HTML content
+
+    Args:
+        html_content (str): The HTML content to clean
+
+    Returns:
+        str: The cleaned text
+    """
     soup = BeautifulSoup(html_content, 'html.parser')
 
     # Remove unnecessary elements
@@ -205,7 +193,15 @@ def clean_text_from_html(html_content):
     return clean_text(content)
 
 def clean_text(text):
-    """Further clean the text by removing extra whitespace and new lines."""
+    """
+    Clean the text by removing extra spaces and empty lines
+
+    Args:
+        text (str): The text to clean
+
+    Returns:
+        str: The cleaned text
+    """
     lines = (line.strip() for line in text.splitlines())
     cleaned_lines = [line for line in lines if line]
     return '\n'.join(cleaned_lines)
@@ -224,14 +220,22 @@ def split_documents(documents):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,  # Split the text into chunks of 1000 characters
         chunk_overlap=300,  # Overlap the chunks by 300 characters
-        is_separator_regex=False,  # Don't split on regex
+        is_separator_regex=False,  
     )
     # Split the documents into chunks
     docs = text_splitter.split_documents(documents)
     return docs
 
 def vector_store_check(uri):
-    # Create the directory if it does not exist
+    """
+    Check if the vector store exists in the local Milvus database specified by the URI.
+
+    Args:
+        uri (str): Path to the local milvus db
+
+    Returns:
+        bool: True if the vector store exists, False otherwise
+    """
     head = os.path.split(uri)
     os.makedirs(head[0], exist_ok=True)
     
