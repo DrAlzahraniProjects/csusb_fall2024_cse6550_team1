@@ -173,7 +173,15 @@ def load_documents_from_web():
     return cleaned_documents
 
 def clean_text_from_html(html_content):
-    """Clean HTML content to extract main text."""
+    """
+    Clean the text from the HTML content
+
+    Args:
+        html_content (str): The HTML content to clean
+
+    Returns:
+        str: The cleaned text
+    """
     soup = BeautifulSoup(html_content, 'html.parser')
 
     # Remove unnecessary elements
@@ -189,7 +197,15 @@ def clean_text_from_html(html_content):
     return clean_text(content)
 
 def clean_text(text):
-    """Further clean the text by removing extra whitespace and new lines."""
+    """
+    Clean the text by removing extra spaces and empty lines
+
+    Args:
+        text (str): The text to clean
+
+    Returns:
+        str: The cleaned text
+    """
     lines = (line.strip() for line in text.splitlines())
     cleaned_lines = [line for line in lines if line]
     return '\n'.join(cleaned_lines)
@@ -215,7 +231,15 @@ def split_documents(documents):
     return docs
 
 def vector_store_check(uri):
-    # Create the directory if it does not exist
+    """
+    Check if the vector store exists in the local Milvus database specified by the URI.
+
+    Args:
+        uri (str): Path to the local milvus db
+        
+    Returns:
+        bool: True if the vector store exists, False otherwise
+    """
     head = os.path.split(uri)
     os.makedirs(head[0], exist_ok=True)
     

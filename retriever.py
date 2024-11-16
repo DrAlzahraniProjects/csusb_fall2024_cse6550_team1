@@ -4,6 +4,15 @@ from pydantic import Field
 from typing import List, Any
 
 class ScoredRetriever(BaseRetriever):
+    """
+    A retriever that uses a vector store to retrieve relevant documents based on similarity search
+
+    Args:
+        BaseRetriever : The base retriever class
+
+    Returns:
+        List[Document]: The list of relevant documents
+    """
 
     vector_store: Any = Field(description="Vector store for similarity search")
     score_threshold: float = Field(default=0.1, description="Minimum score threshold for a document to be considered relevant")
@@ -58,4 +67,4 @@ class ScoredRetriever(BaseRetriever):
         # Assuming Milvus L2 distance, adjust based on your distance metric
         max_distance = np.sqrt(2)
         normalized = 1 - (score / max_distance)
-        return max(0, min(1, normalized)) 
+        return max(0, min(1, normalized))

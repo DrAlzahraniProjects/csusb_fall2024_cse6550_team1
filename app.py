@@ -3,8 +3,6 @@ from uuid import uuid4
 import os
 import subprocess
 from RAG import initialize_milvus, query_rag
-import time
-import yake
 import pandas as pd
 from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
 
@@ -50,22 +48,6 @@ def load_css(file_name):
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     except FileNotFoundError:
         st.error(f"css file '{file_name}' not found.")
-
-def extract_keywords(text):
-    """
-    Extract keywords from a text.
-
-    Args:
-        text (str): The text to extract keywords from
-
-    Returns:
-        list: A list of keywords
-    """
-    kw_extractor = yake.KeywordExtractor(lan="en", n=1, top=10, features=None, dedupLim=0.9, dedupFunc='seqm', windowsSize=1)
-    ignore_words = set(["context", "question", "answer", "source", "question", "provided", "information","based", "csusb", "article", "knowledge"])
-    keywords = kw_extractor.extract_keywords(text)
-    keywords_list = [keyword.lower() for keyword, _ in keywords if keyword.lower() not in ignore_words]
-    # db_client.insert_common_keywords(keywords_list)
 
 def color_cells(val):
     """
@@ -126,9 +108,6 @@ def display_performance_metrics():
     with normal_container.container():
         for metric_name, metric in performance_metrics:
             st.markdown(f"<div class='normal-metrics'>{metric_name}: {result[metric]}</div>", unsafe_allow_html=True)
-    # # Display performance metrics in the sidebar
-    # for metric_name, metric in performance_metrics:
-    #     st.sidebar.write(f"{metric_name}: {result[metric]}")
     # Reset Button
     if st.sidebar.button("Reset"):
         db_client.reset_performance_metrics()
@@ -206,8 +185,6 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = {}
         with st.spinner("Initializing, Please Wait..."):
-            # db_client.create_stats_table()
-            # db_client.create_common_keywords_table()
             db_client.create_performance_metrics_table()
             db_client.insert_default_performance_metrics()
             vector_store = initialize_milvus()
@@ -254,18 +231,14 @@ def main():
                     os.environ["QUERY_RUNNING"] = user_message_id
                     answer, source = query_rag(prompt)
 
-            # removing the sources from the answer for keyword extraction
-            # main_answer = answer.split("\n\nSources:")[0].strip()
-            # total_text = prompt + " " + main_answer
-            # extract_keywords(total_text)
-
             if source == 0:
                 st.error(f"{answer}")
             else:
                 st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
                 del os.environ["QUERY_RUNNING"]
                 st.rerun()
-    
+
+    # Handle the case where the query is still running but interrupted due to feedback buttons
     if os.environ.get("QUERY_RUNNING", None):
         response_placeholder = st.empty()
         answer, source = None, None
