@@ -10,31 +10,33 @@ from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
 
 db_client = DatabaseClient()
 
+# Answerable and Unanswerable questions
 answerable_questions = {
-        "How can I contact ITS?".lower(),
-        "How can I connect to the campus Wi-Fi?".lower(),
-        "Who are the Co-Chairs for the 2024/2025 Committee?".lower(),
-        "Where are all the printers located?".lower(),
-        "What are the CoyoteLabs virtual computer lab?".lower(),
-        "What are the CoyoteLabs virtual computer lab?".lower(),
-        "Is Adobe Creative Cloud available as student software?".lower(),
-        "Does CSUSB have accessible technology?".lower(),
-        "How do I enable multi-factor authentication?".lower(),
-        "What are Coyote OneCard benefits?".lower(),
-        "why can't i get access for wireless prints through phone?".lower(),
+        "How can I contact ITS?",
+        "How can I connect to the campus Wi-Fi?",
+        "Who are the Co-Chairs for the 2024/2025 Committee?",
+        "Where are all the printers located?",
+        "What are the CoyoteLabs virtual computer labs?",
+        "Is Adobe Creative Cloud available as student software?",
+        "Does CSUSB have accessible technology?",
+        "How do I enable multi-factor authentication?",
+        "What are Coyote OneCard benefits?",
+        "Why can't I get access for wireless prints through my phone?",
     }
+answerable_questions = {q.lower() for q in answerable_questions}
 unanswerable_questions = {
-        "How do I connect to Starbucks Wi-Fi?".lower(),
-        "What is a smart contract?".lower(),
-        "Can you write code for a basic python script?".lower(),
-        "Who is the dean of CSUSB?".lower(),
-        "What class does Dr. Alzahrani teach?".lower(),
-        "Who is Hironori Washizaki?".lower(),
-        "When was CSUSB built?".lower(),
-        "What is the future impact of AI on software quality standards?".lower(),
-        "What is regression testing?".lower(),
-        "Can a student apply a part time job in IT support if so what is the process?".lower(),
+        "How do I connect to Starbucks Wi-Fi?",
+        "What is a smart contract?",
+        "Can you write code for a basic Python script?",
+        "Who is the dean of CSUSB?",
+        "What class does Dr. Alzahrani teach?",
+        "Who is Hironori Washizaki?",
+        "When was CSUSB built?",
+        "What is the future impact of AI on software quality standards?",
+        "What is regression testing?",
+        "Can a student apply for a part-time job in IT support? If so, what is the process?",
     }
+unanswerable_questions = {q.lower() for q in unanswerable_questions}
 
 def load_css(file_name):
     """
@@ -247,35 +249,37 @@ def main():
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
                 # generate response from RAG model
+                answer, source = None, None
                 if not os.environ.get("QUERY_RUNNING", None):
                     os.environ["QUERY_RUNNING"] = user_message_id
-                    answer, sources = query_rag(prompt)
+                    answer, source = query_rag(prompt)
 
             # removing the sources from the answer for keyword extraction
             # main_answer = answer.split("\n\nSources:")[0].strip()
             # total_text = prompt + " " + main_answer
             # extract_keywords(total_text)
 
-            if sources == []:
+            if source == 0:
                 st.error(f"{answer}")
             else:
-                st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
+                st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
                 del os.environ["QUERY_RUNNING"]
                 st.rerun()
     
     if os.environ.get("QUERY_RUNNING", None):
         response_placeholder = st.empty()
+        answer, source = None, None
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
                 user_message_id = os.environ.get("QUERY_RUNNING")
                 assistant_message_id = user_message_id.replace("user", "assistant", 1)
                 prompt = st.session_state.messages[user_message_id]["content"]
                 # generate response from RAG model
-                answer, sources = query_rag(prompt)
-        if sources == []:
+                answer, source = query_rag(prompt)
+        if source == None:
             st.error(f"{answer}")
         else:
-            st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "sources": sources}
+            st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
             del os.environ["QUERY_RUNNING"]
             st.rerun()
 
