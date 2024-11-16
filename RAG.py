@@ -51,7 +51,7 @@ def query_rag(query):
     """
     try:
         # Define the model
-        model = ChatMistralAI(model='open-mistral-7b', temperature = 0)
+        model = ChatMistralAI(model='open-mistral-7b', temperature = 0.2)
         print("Model Loaded")
 
         # Create the prompt and components for the RAG model
@@ -66,7 +66,7 @@ def query_rag(query):
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
-            return "I don't have enough information to answer this question.", None
+            return "I don't have enough information to answer this question.", "Unknown"
 
         # Extract metadata from the most relevant document
         most_relevant_document = retrieved_documents[0]
