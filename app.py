@@ -70,7 +70,14 @@ def display_performance_metrics():
     """
     Display performance metrics in the sidebar.
     """
-    st.sidebar.title("Confusion Matrix")
+    st.sidebar.markdown(
+        """
+        <h1 style="font-size:24px; margin:0; text-decoration:none;">
+            <a href="https://github.com/DrAlzahraniProjects/csusb_fall2024_cse6550_team1/wiki/SQA-Questions#answerable-vs-unanswerable-questions" style="text-decoration:none; color:inherit;">Confusion Matrix</a>
+        </h1>
+        """,
+        unsafe_allow_html=True
+    )
     important_metrics = [
         ("Sensitivity", "sensitivity"),
         ("Specificity", "specificity"),
