@@ -62,3 +62,32 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
 .st-emotion-cache-arzcut.ea3mdgi2 {
     max-width: 1100px;
 }
+/* Dark Mode Styles */
+@media (prefers-color-scheme: dark) {
+    .chat-title {
+        background-color: #333333;
+        color: #ffffff;
+    }
+
+    .user-message {
+        background-color: #444444;
+        color: #ffffff;
+    }
+
+    .important-metrics {
+        border: 1px solid #1fa1e5bb;
+        background-color: #2d4f5e33;
+        color: #bbd4e6;
+    }
+
+    .normal-metrics {
+        border: 1px solid #555555;
+        background-color: #222222;
+        color: #cccccc;
+    }
+
+    .assistant-message {
+        background-color: #333333;
+        color: #ffffff;
+    }
+}
