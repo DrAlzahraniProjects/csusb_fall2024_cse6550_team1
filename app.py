@@ -73,7 +73,7 @@ def display_performance_metrics():
     
     # Title with clickable text
     st.sidebar.markdown(
-        '<a href="https://github.com/DrAlzahraniProjects/csusb_fall2024_cse6550_team1?tab=readme-ov-file#software-quality-assurance-for-the-it-chatbot" style="text-decoration: none; font-size: 24px; color: black;">Confusion Matrix</a>',
+        '<a href="https://github.com/DrAlzahraniProjects/csusb_fall2024_cse6550_team1?tab=readme-ov-file#software-quality-assurance-for-the-it-chatbot" class="sidebar-heading">Confusion Matrix</a>',
         unsafe_allow_html=True,
     )
 

@@ -29,6 +29,13 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
     float: right;
 }
 
+.sidebar-heading {
+    text-decoration: none; 
+    font-size: 30px; 
+    font-weight: bold;
+    color: black !important;
+}
+
 .assistant-message {
     text-align: left;
     background-color: #e8f4ff;
