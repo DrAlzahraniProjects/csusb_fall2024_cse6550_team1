@@ -51,21 +51,30 @@ def load_css(file_name):
 
 def color_cells(val):
     """
-    Apply color based on cell content or other logic.
+    Apply background and text color based on cell content.
 
     Args:
-        val (str): The value in the cell
+        val (str): The value in the cell.
 
     Returns:
-        str : The color to apply to the cell
+        dict: A dictionary of CSS properties to style the cell.
     """
-    if "TP" in val:
-        return "background-color: #f1f1f1;color:#444444"
-    elif "TN" in val:
-        return "background-color: #f1f1f1;color:#444444"
-    return "background-color: #f9f9f9;color:#444444"  # Default color
+    if "TP" in val and val[0] != '0' or "TN" in val and val[0] != '0':
+        return {
+            "background-color": "#90f7aa",  # Light green for correct predictions
+            "color": "#013b0f"  # Dark green text
+        }
+    elif "FP" in val and val[0] != '0' or "FN" in val and val[0] != '0':
+        return {
+            "background-color": "#fbc5ca",  # Light red for incorrect predictions
+            "color": "#4b0007"  # Dark red text
+        }
+    return {
+        "background-color": "transparent",  # Default white background
+        "color": "#000000"  # Default black text
+    }
 
-        
+
 def display_performance_metrics():
     """
     Display performance metrics in the sidebar.
@@ -99,11 +108,14 @@ def display_performance_metrics():
             'Predicted -': f"{result['true_negative']} (TN)"
         },
     }
+    # Transpose the DataFrame
     df = pd.DataFrame(data).transpose()
-    # Apply the coloring function to each cell in the DataFrame
-    styled_df = df.style.map(color_cells)
-    st.sidebar.write(styled_df)
 
+    # Apply color styling to the DataFrame
+    styled_df = df.style.applymap(lambda x: ";".join(f"{k}:{v}" for k, v in color_cells(x).items()))
+
+    # Render the styled DataFrame with the custom CSS
+    st.sidebar.write(styled_df.to_html(), unsafe_allow_html=True)
 
     # Normal metrics
     performance_metrics = [
@@ -119,7 +131,8 @@ def display_performance_metrics():
     if st.sidebar.button("Reset"):
         db_client.reset_performance_metrics()
         st.rerun()
-        
+
+
 def handle_feedback(assistant_message_id):
     """
     Handle feedback for a message.
@@ -176,14 +189,14 @@ def handle_feedback(assistant_message_id):
             st.session_state.messages[assistant_message_id]["feedback"] = None
             
     db_client.update_performance_metrics()
- 
-            
+
+
 def main():
     """
     Main function to run the app
     """
     header = st.container()
-    header.write("""<div class='chat-title'>Team 1 Support Chatbot</div>""", unsafe_allow_html=True)
+    header.write("""<div class='chat-title'>ITS Support Chatbot</div>""", unsafe_allow_html=True)
     header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
 
     # Load the CSS file
@@ -218,7 +231,7 @@ def main():
     display_performance_metrics()
     
     # Handle user input
-    if prompt := st.chat_input("Message Team1 support chatbot"):
+    if prompt := st.chat_input("Ask ITS support chatbot"):
 
         # creating user_message_id and assistant_message_id with the same unique "id" because they are related
         unique_id = str(uuid4())
@@ -262,6 +275,7 @@ def main():
             st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
             del os.environ["QUERY_RUNNING"]
             st.rerun()
+
 
 if __name__ == "__main__":
     # If streamlit instance is running
