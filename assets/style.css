@@ -62,6 +62,7 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
 .st-emotion-cache-arzcut.ea3mdgi2 {
     max-width: 1100px;
 }
+
 /* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
     .chat-title {
@@ -92,4 +93,15 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
         border-color: #555555; /* Softer gray border for neutral look */
         background-color: #262038;
     }
+}
+
+table {
+    border-spacing: 0;
+    border-radius: 15px; /* Add rounded corners */
+    overflow: hidden; /* Ensure rounded corners appear */
+    width: 100%;
+}
+th, td {
+    padding: 10px;
+    text-align: center;
 }
