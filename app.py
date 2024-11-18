@@ -70,13 +70,7 @@ def display_performance_metrics():
     """
     Display performance metrics in the sidebar.
     """
-    
-    # Title with clickable text
-    st.sidebar.markdown(
-        '<a href="https://github.com/DrAlzahraniProjects/csusb_fall2024_cse6550_team1?tab=readme-ov-file#software-quality-assurance-for-the-it-chatbot" class="sidebar-heading">Confusion Matrix</a>',
-        unsafe_allow_html=True,
-    )
-
+    st.sidebar.title("Confusion Matrix")
     important_metrics = [
         ("Sensitivity", "sensitivity"),
         ("Specificity", "specificity"),
