@@ -5,6 +5,7 @@ import subprocess
 from RAG import initialize_milvus, query_rag
 import pandas as pd
 from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
+from ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
 
 db_client = DatabaseClient()
 
@@ -232,7 +233,7 @@ def main():
     
     # Handle user input
     if prompt := st.chat_input("Ask ITS support chatbot"):
-
+        handle_rate_limiting()
         # creating user_message_id and assistant_message_id with the same unique "id" because they are related
         unique_id = str(uuid4())
         user_message_id = f"user_message_{unique_id}"
