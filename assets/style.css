@@ -66,26 +66,30 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
 @media (prefers-color-scheme: dark) {
     .chat-title {
         color: #ffffff; /* White text for dark mode */
+        background-color: #0e1117;
     }
 
     .user-message {
         color: #ffffff; /* White text */
         border: 1px solid #444444; /* Softer border for dark mode */
+        background-color: #262738;
     }
 
-    .important-metrics {
-        .assistant-message {
-            color: #ffffff; /* White text */
-            border: 1px solid #444444; /* Softer border for dark mode */
+    .assistant-message {
+        color: #ffffff; /* White text */
+        border: 1px solid #444444; /* Softer border for dark mode */
+        background-color: #0e1117;
     }
 
     .important-metrics {
         color: #ffffff; /* White text */
         border-color: #88c9e3; /* Subtle blue for emphasis */
+        background-color: #1fa1e666;
     }
 
     .normal-metrics {
         color: #ffffff; /* White text */
         border-color: #555555; /* Softer gray border for neutral look */
+        background-color: #262038;
     }
 }
