@@ -24,16 +24,18 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
 
 .user-message {
     text-align: right;
-    background-color: #f1f1f1;
+    background-color: #cfcfcf;
+    border: 1px solid #444444;
     color: black;
     float: right;
 }
 
 .assistant-message {
     text-align: left;
-    background-color: #e8f4ff;
+    /*background-color: #e8f4ff;*/
     color: black;
     float: left;
+    border: 1px solid #444444;
 }
 
 .stMainBlockContainer {
@@ -43,20 +45,20 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
 
 .important-metrics {
     border: 1px solid #1fa1e566;
-    background-color:#a5eafc33;
-    color:#096d99aa;
-    border-radius:10px;
-    padding:10px;
-    margin-bottom:10px;
+    background-color: #a5eafc33;
+    color: #31333f;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
 }
 
 .normal-metrics {
     border: 1px solid #aaaaaa;
-    background-color:#f3f3f3;
-    color:#6f6f6f;
-    border-radius:10px;
-    padding:10px;
-    margin-bottom:10px;
+    background-color: #f3f3f3;
+    color: #31333f;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
 }
 
 .st-emotion-cache-arzcut.ea3mdgi2 {
@@ -68,30 +70,46 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
     .chat-title {
         color: #ffffff; /* White text for dark mode */
         background-color: #0e1117;
+        font-size: 50px;
+        font-weight: bold;
+        z-index: 999;
+        text-align: center;
+        position: sticky;
+        top: 2.875rem;
     }
 
     .user-message {
         color: #ffffff; /* White text */
         border: 1px solid #444444; /* Softer border for dark mode */
-        background-color: #262738;
+        background-color: #262730;
+        float: right;
+		text-align: right;
     }
 
     .assistant-message {
-        color: #ffffff; /* White text */
+        color: #f1f1f1; /* White text */
         border: 1px solid #444444; /* Softer border for dark mode */
         background-color: #0e1117;
+        float: left;
+		text-align: left;
     }
 
     .important-metrics {
         color: #ffffff; /* White text */
-        border-color: #88c9e3; /* Subtle blue for emphasis */
-        background-color: #1fa1e666;
+        border: 1px solid #1fa1e566; /* Subtle blue for emphasis */
+        background-color: #72b4d766;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
 
     .normal-metrics {
         color: #ffffff; /* White text */
-        border-color: #555555; /* Softer gray border for neutral look */
-        background-color: #262038;
+        border: 1px solid #aaaaaa; /* Softer gray border for neutral look */
+        background-color: #262730;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
 }
 

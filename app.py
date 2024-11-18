@@ -61,18 +61,19 @@ def color_cells(val):
     """
     if "TP" in val and val[0] != '0' or "TN" in val and val[0] != '0':
         return {
-            "background-color": "#81d596",  # Light green for correct predictions
+            "background-color": "#90f7aa",  # Light green for correct predictions
             "color": "#013b0f"  # Dark green text
         }
     elif "FP" in val and val[0] != '0' or "FN" in val and val[0] != '0':
         return {
-            "background-color": "#e7a2a8",  # Light red for incorrect predictions
+            "background-color": "#fbc5ca",  # Light red for incorrect predictions
             "color": "#4b0007"  # Dark red text
         }
     return {
         "background-color": "transparent",  # Default white background
         "color": "#000000"  # Default black text
     }
+
 
 def display_performance_metrics():
     """
@@ -116,8 +117,6 @@ def display_performance_metrics():
     # Render the styled DataFrame with the custom CSS
     st.sidebar.write(styled_df.to_html(), unsafe_allow_html=True)
 
-
-
     # Normal metrics
     performance_metrics = [
         ("Accuracy", "accuracy"),
@@ -132,7 +131,8 @@ def display_performance_metrics():
     if st.sidebar.button("Reset"):
         db_client.reset_performance_metrics()
         st.rerun()
-        
+
+
 def handle_feedback(assistant_message_id):
     """
     Handle feedback for a message.
@@ -189,14 +189,14 @@ def handle_feedback(assistant_message_id):
             st.session_state.messages[assistant_message_id]["feedback"] = None
             
     db_client.update_performance_metrics()
- 
-            
+
+
 def main():
     """
     Main function to run the app
     """
     header = st.container()
-    header.write("""<div class='chat-title'>Team 1 Support Chatbot</div>""", unsafe_allow_html=True)
+    header.write("""<div class='chat-title'>ITS Support Chatbot</div>""", unsafe_allow_html=True)
     header.write("""<div class='fixed-header'/>""", unsafe_allow_html=True)
 
     # Load the CSS file
@@ -231,7 +231,7 @@ def main():
     display_performance_metrics()
     
     # Handle user input
-    if prompt := st.chat_input("Message Team1 support chatbot"):
+    if prompt := st.chat_input("Ask ITS support chatbot"):
 
         # creating user_message_id and assistant_message_id with the same unique "id" because they are related
         unique_id = str(uuid4())
@@ -275,6 +275,7 @@ def main():
             st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
             del os.environ["QUERY_RUNNING"]
             st.rerun()
+
 
 if __name__ == "__main__":
     # If streamlit instance is running
