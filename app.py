@@ -113,7 +113,7 @@ def display_performance_metrics():
     df = pd.DataFrame(data).transpose()
 
     # Apply color styling to the DataFrame
-    styled_df = df.style.applymap(lambda x: ";".join(f"{k}:{v}" for k, v in color_cells(x).items()))
+    styled_df = df.style.map(lambda x: ";".join(f"{k}:{v}" for k, v in color_cells(x).items()))
 
     # Render the styled DataFrame with the custom CSS
     st.sidebar.write(styled_df.to_html(), unsafe_allow_html=True)
