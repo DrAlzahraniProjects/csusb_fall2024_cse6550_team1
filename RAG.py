@@ -13,7 +13,6 @@ from langchain_milvus import Milvus
 from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.chains import create_retrieval_chain
 from langchain_huggingface import HuggingFaceEmbeddings
 from pymilvus import connections, utility
 from requests.exceptions import HTTPError
@@ -108,9 +107,8 @@ def query_rag(query):
         # Create the prompt and components for the RAG model
         prompt = create_prompt()
         vector_store = load_existing_db(uri=MILVUS_URI)
-        retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=3)
+        retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=5)
         document_chain = create_stuff_documents_chain(model, prompt)
-        retrieval_chain = create_retrieval_chain(retriever, document_chain)
     
         # Retrieve the most relevant document based on the query
         retrieved_documents = retriever.get_relevant_documents(query)
@@ -128,20 +126,21 @@ def query_rag(query):
         print("Most Relevant Document Retrieved")
 
         # Generate a response using retrieval chain
-        response = retrieval_chain.invoke({"input": f"{query}"})
-        response_text = response.get("answer", "I couldn't generate a response.")
+        response = document_chain.invoke({
+            "input": query,
+            "context": retrieved_documents
+        })
 
         # Add the source to the response if available
         if isinstance(source, str) and source != "Unknown":
-            response_text += f"\n\nSource: [{title}]({source})"
             if score <= 0.4:
-                result = is_answer_relevant(model, response["answer"], most_relevant_document.page_content)
+                result = is_answer_relevant(model, response, most_relevant_document.page_content)
                 if result is False:
-                    response["answer"] = "I don't have enough information to answer this question."
+                    response = "I don't have enough information to answer this question."
                     source = None
             print("Response Generated")
         
-        return response_text, source
+        return response, source
             
     except HTTPStatusError as e:
         print(f"HTTPStatusError: {e}")

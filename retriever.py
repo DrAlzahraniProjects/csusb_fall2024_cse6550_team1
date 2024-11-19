@@ -16,7 +16,7 @@ class ScoreThresholdRetriever(BaseRetriever):
 
     vector_store: Any = Field(..., description="Vector store for similarity search")
     score_threshold: float = Field(default=0.1, description="Minimum score threshold for a document to be considered relevant")
-    k: int = Field(default=3, description="Number of documents to retrieve")
+    k: int = Field(default=5, description="Number of documents to retrieve")
 
     def get_relevant_documents(self, query:str) -> List[Any]:
         """
@@ -38,21 +38,22 @@ class ScoreThresholdRetriever(BaseRetriever):
             return []
 
         # Initialize variables for tracking the most relevant document
-        highest_score = -1
-        most_relevant_document = None
+        relevant_documents = []
 
         for doc, score in docs_and_scores:
             normalized_score = self._normalize_score(score)
 
             # Check if the document is relevant and has a higher score than the current highest score
-            if normalized_score >= self.score_threshold and normalized_score > highest_score:
-                highest_score = normalized_score
-                most_relevant_document = doc
-                most_relevant_document.metadata["score"] = normalized_score
-                most_relevant_document.metadata["title"] = doc.metadata.get("title", "Untitled")
-                most_relevant_document.metadata["source"] = doc.metadata.get("source", "Unknown")
+            if normalized_score >= self.score_threshold:
+                doc.metadata["score"] = normalized_score
+                doc.metadata["title"] = doc.metadata.get("title", "Untitled")
+                doc.metadata["source"] = doc.metadata.get("source", "Unknown")
+                relevant_documents.append(doc)
 
-        return [most_relevant_document] if most_relevant_document else []
+        # Sort the relevant documents by score in descending order
+        relevant_documents.sort(key=lambda x: x.metadata["score"], reverse=True)
+
+        return relevant_documents
     
     @staticmethod
     def _normalize_score(score):
