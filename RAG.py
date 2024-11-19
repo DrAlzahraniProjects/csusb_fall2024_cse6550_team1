@@ -49,47 +49,30 @@ async def query_rag(query):
     Returns:
         str: The answer to the query
     """
+    # Without execution time calculation
     try:
         # Load vector store asynchronously
         async def load_vector_store():
             return load_existing_db(uri=MILVUS_URI)
 
         # Start loading vector store asynchronously
-        start_time = time.time()
         vector_store_future = asyncio.create_task(load_vector_store())
-        vector_store_time = time.time() - start_time
-        print(f"Time taken to load vector store: {vector_store_time:.6f} seconds")
 
         # Wait for vector store and initialize retriever
         vector_store = await vector_store_future
-        start_time = time.time()
         retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=5)
-        retriever_time = time.time() - start_time
-        print(f"Time taken to create retriever: {retriever_time:.6f} seconds")
 
         # Define the model
-        start_time = time.time()
         model = ChatMistralAI(model='open-mistral-7b', temperature=0.2)
-        model_time = time.time() - start_time
-        print(f"Time taken to load the model: {model_time:.6f} seconds")
         print("Model Loaded")
 
         # Create the prompt and components for the RAG model
-        start_time = time.time()
         prompt = create_prompt()
-        prompt_time = time.time() - start_time
-        print(f"Time taken to create prompt: {prompt_time:.6f} seconds")
 
-        start_time = time.time()
         document_chain = create_stuff_documents_chain(model, prompt)
-        document_chain_time = time.time() - start_time
-        print(f"Time taken to create document chain: {document_chain_time:.6f} seconds")
 
         # Retrieve the most relevant document based on the query
-        start_time = time.time()
         retrieved_documents = retriever.get_relevant_documents(query)
-        retrieval_time = time.time() - start_time
-        print(f"Time taken to retrieve documents: {retrieval_time:.6f} seconds")
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
@@ -103,15 +86,11 @@ async def query_rag(query):
         print("Most Relevant Document Retrieved")
 
         # Generate a response using retrieval chain
-        start_time = time.time()
         response = document_chain.invoke({
             "input": query,
             "context": retrieved_documents
         })
-        invoke_time = time.time() - start_time
-        print(f"Time taken to invoke : {invoke_time:.6f} seconds")
         # response_text = response.get("answer", "I couldn't generate a response.")
-
 
         # Add the source to the response if available
         if isinstance(source, str) and source != "Unknown":
@@ -125,6 +104,85 @@ async def query_rag(query):
         if e.response.status_code == 429:
             return "I am currently experiencing high traffic. Please try again later.", None
         return "I am unable to answer this question at the moment. Please try again later.", None
+
+    # Calculating execution time of each sub-task
+
+    # try:
+    #     # Load vector store asynchronously
+    #     async def load_vector_store():
+    #         return load_existing_db(uri=MILVUS_URI)
+    #
+    #     # Start loading vector store asynchronously
+    #     start_time = time.time()
+    #     vector_store_future = asyncio.create_task(load_vector_store())
+    #     vector_store_time = time.time() - start_time
+    #     print(f"Time taken to load vector store: {vector_store_time:.6f} seconds")
+    #
+    #     # Wait for vector store and initialize retriever
+    #     vector_store = await vector_store_future
+    #     start_time = time.time()
+    #     retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=5)
+    #     retriever_time = time.time() - start_time
+    #     print(f"Time taken to create retriever: {retriever_time:.6f} seconds")
+    #
+    #     # Define the model
+    #     start_time = time.time()
+    #     model = ChatMistralAI(model='open-mistral-7b', temperature=0.2)
+    #     model_time = time.time() - start_time
+    #     print(f"Time taken to load the model: {model_time:.6f} seconds")
+    #     print("Model Loaded")
+    #
+    #     # Create the prompt and components for the RAG model
+    #     start_time = time.time()
+    #     prompt = create_prompt()
+    #     prompt_time = time.time() - start_time
+    #     print(f"Time taken to create prompt: {prompt_time:.6f} seconds")
+    #
+    #     start_time = time.time()
+    #     document_chain = create_stuff_documents_chain(model, prompt)
+    #     document_chain_time = time.time() - start_time
+    #     print(f"Time taken to create document chain: {document_chain_time:.6f} seconds")
+    #
+    #     # Retrieve the most relevant document based on the query
+    #     start_time = time.time()
+    #     retrieved_documents = retriever.get_relevant_documents(query)
+    #     retrieval_time = time.time() - start_time
+    #     print(f"Time taken to retrieve documents: {retrieval_time:.6f} seconds")
+    #
+    #     if not retrieved_documents:
+    #         print("No Relevant Documents Retrieved, so sending default response")
+    #         return "I don't have enough information to answer this question.", "Unknown"
+    #
+    #     # Extract metadata from the most relevant document
+    #     most_relevant_document = retrieved_documents[0]
+    #     source = most_relevant_document.metadata.get("source", "Unknown")
+    #     title = most_relevant_document.metadata.get("title", "Untitled").replace("\n", " ")
+    #
+    #     print("Most Relevant Document Retrieved")
+    #
+    #     # Generate a response using retrieval chain
+    #     start_time = time.time()
+    #     response = document_chain.invoke({
+    #         "input": query,
+    #         "context": retrieved_documents
+    #     })
+    #     invoke_time = time.time() - start_time
+    #     print(f"Time taken to invoke : {invoke_time:.6f} seconds")
+    #     # response_text = response.get("answer", "I couldn't generate a response.")
+    #
+    #
+    #     # Add the source to the response if available
+    #     if isinstance(source, str) and source != "Unknown":
+    #         response += f"\n\nSource: [{title}]({source})"
+    #         print("Response Generated")
+    #
+    #     return response, source
+    #
+    # except HTTPStatusError as e:
+    #     print(f"HTTPStatusError: {e}")
+    #     if e.response.status_code == 429:
+    #         return "I am currently experiencing high traffic. Please try again later.", None
+    #     return "I am unable to answer this question at the moment. Please try again later.", None
     
 def create_prompt():
     """
