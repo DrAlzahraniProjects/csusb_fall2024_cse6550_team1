@@ -5,7 +5,7 @@ import subprocess
 from RAG import initialize_milvus, query_rag
 import pandas as pd
 from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
-
+import asyncio
 db_client = DatabaseClient()
 
 # Answerable and Unanswerable questions
@@ -249,7 +249,7 @@ def main():
                 answer, source = None, None
                 if not os.environ.get("QUERY_RUNNING", None):
                     os.environ["QUERY_RUNNING"] = user_message_id
-                    answer, source = query_rag(prompt)
+                    answer, source = asyncio.run(query_rag(prompt))
 
             if source is None:
                 st.error(f"{answer}")
@@ -268,7 +268,7 @@ def main():
                 assistant_message_id = user_message_id.replace("user", "assistant", 1)
                 prompt = st.session_state.messages[user_message_id]["content"]
                 # generate response from RAG model
-                answer, source = query_rag(prompt)
+                answer, source = qasyncio.run(query_rag(prompt))
         if source is None:
             st.error(f"{answer}")
         else:
