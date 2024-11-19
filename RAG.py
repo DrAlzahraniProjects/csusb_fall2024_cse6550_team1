@@ -134,10 +134,12 @@ def query_rag(query):
         # Add the source to the response if available
         if isinstance(source, str) and source != "Unknown":
             if score <= 0.4:
-                result = is_answer_relevant(model, response, most_relevant_document.page_content)
+                result = is_answer_relevant(model, response, retrieved_documents)
                 if result is False:
                     response = "I don't have enough information to answer this question."
                     source = None
+                else:
+                    response += f"\n\nSource: [{title}]({source})"
             print("Response Generated")
         
         return response, source
