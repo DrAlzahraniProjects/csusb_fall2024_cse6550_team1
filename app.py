@@ -248,24 +248,24 @@ def main():
             with st.spinner('Generating Response...'):
                 # generate response from RAG model
                 answer, source = None, None
-                if not os.environ.get("QUERY_RUNNING", None):
-                    os.environ["QUERY_RUNNING"] = user_message_id
+                if not st.session_state.get("QUERY_RUNNING", None):
+                    st.session_state["QUERY_RUNNING"] = user_message_id
                     answer, source = query_rag(prompt)
 
             if source is None:
                 st.error(f"{answer}")
             else:
                 st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
-                del os.environ["QUERY_RUNNING"]
+                del st.session_state["QUERY_RUNNING"]
                 st.rerun()
 
     # Handle the case where the query is still running but interrupted due to feedback buttons
-    if os.environ.get("QUERY_RUNNING", None):
+    if st.session_state.get("QUERY_RUNNING", None):
         response_placeholder = st.empty()
         answer, source = None, None
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
-                user_message_id = os.environ.get("QUERY_RUNNING")
+                user_message_id = st.session_state.get("QUERY_RUNNING")
                 assistant_message_id = user_message_id.replace("user", "assistant", 1)
                 prompt = st.session_state.messages[user_message_id]["content"]
                 # generate response from RAG model
@@ -274,7 +274,7 @@ def main():
             st.error(f"{answer}")
         else:
             st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
-            del os.environ["QUERY_RUNNING"]
+            del st.session_state["QUERY_RUNNING"]
             st.rerun()
 
 
