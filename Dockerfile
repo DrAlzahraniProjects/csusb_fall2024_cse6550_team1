@@ -55,9 +55,11 @@ RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 # Install Python packages not on Mamba DB
 RUN pip install -qU langchain_milvus extra_streamlit_components
 
-
 # Copy the current directory contents into the container at /app
 COPY . /app
+
+# Remove old logs that persist through previous run
+RUN rm /app/logs/app.log
 
 # Set the StreamLit ENV for configuration
 ENV STREAMLIT_SERVER_BASEURLPATH=/team1
