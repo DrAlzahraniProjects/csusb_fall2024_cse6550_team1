@@ -7,10 +7,6 @@ import extra_streamlit_components as stx
 cookie_manager = stx.CookieManager()
 random.seed(1)
 
-# Store user request information in session state
-if 'user_requests' not in st.session_state:
-    st.session_state.user_requests = defaultdict(list)
-
 # Function to get the remote IP address
 def get_remote_ip():
     # You can substitute this with a different method if you need to access headers directly, 
@@ -29,7 +25,6 @@ def is_rate_limited(user_ip):
 
     # Debug: Check how many requests the user has made
     # st.write(f"Requests for {user_ip}: {len(st.session_state.user_requests[user_ip])}")
-
     # Check if the number of requests is over the limit
     if len(st.session_state.user_requests[user_ip]) >= 10:
         return True
@@ -40,16 +35,13 @@ def is_rate_limited(user_ip):
 # Function to handle request rate limiting
 def handle_rate_limiting():
     # Store user request information in session state
-    if 'user_requests' not in st.session_state:
-        st.session_state.user_requests = defaultdict(list)
-
     user_ip = get_remote_ip()
 
     # Check if the user is rate-limited
     if is_rate_limited(user_ip):
-        st.error("You’ve reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
-        st.stop()  # Stop further processing of the app
+        return False
 
     # If not rate-limited, allow the request and store the timestamp
     current_time = time.time()
     st.session_state.user_requests[user_ip].append(current_time)
+    return user_ip

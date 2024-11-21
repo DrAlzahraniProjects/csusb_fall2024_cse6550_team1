@@ -9,22 +9,31 @@ import pandas as pd
 from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
 from ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
 
+@st.cache_resource
+def initialize_vector_store():
+    if not hasattr(st.session_state, "vector_store_initialized"):
+        vector_store = initialize_milvus()
+        st.session_state.vector_store_initialized = True
+        return vector_store
+    return st.session_state.vector_store
 class StreamlitApp:
-
-    _app_initialized = False
 
     def __init__(self, session_state=st.session_state):
         self.db_client = DatabaseClient()
-        if not StreamlitApp._app_initialized:
+        print("APP_INITIALIZED:", st.session_state.get("app_initialized", None))
+        if "app_initialized" not in st.session_state:
+            st.session_state.app_initialized = False
+            print("APP_INITIALIZED:", st.session_state.app_initialized)
+        if not st.session_state.app_initialized:
             with st.spinner("Initializing ITS Support Chatbot, Please Wait..."):
                 if 'user_requests' not in st.session_state:
                     st.session_state.user_requests = defaultdict(list)
                 if "messages" not in session_state:
                     self.db_client.create_performance_metrics_table()
                     self.db_client.insert_default_performance_metrics()
-                    self._initialize_vector_store()
+                    st.session_state.vector_store = initialize_vector_store()
                     st.session_state.messages = {}
-                    StreamlitApp._app_initialized = True
+                    st.session_state.app_initialized = True
         # Answerable and Unanswerable questions
         self.answerable_questions = {
             "How can I contact ITS?",
@@ -53,10 +62,7 @@ class StreamlitApp:
         }
         self.unanswerable_questions = {q.lower() for q in self.unanswerable_questions}
 
-    # @st.cache_resource
-    def _initialize_vector_store(self):
-        vector_store = initialize_milvus()
-        return vector_store
+    
 
     def load_css(self, file_name):
         """
@@ -215,6 +221,8 @@ class StreamlitApp:
 
     def display_all_messages(self):
         for message_id, message in st.session_state.messages.items():
+            if message["role"] == "ignore":
+                continue
             if message["role"] == "assistant":
                 st.markdown(f"""
                     <div class='assistant-message'>
@@ -251,7 +259,7 @@ class StreamlitApp:
             with st.spinner('Generating Response...'):
                 answer, source = None, None
                 # if not st.session_state.get("QUERY_RUNNING", None):
-                if len(st.session_state.messages) > 1:
+                if len(st.session_state.messages) > 2:
                     st.session_state["QUERY_RUNNING"] = user_message_id
                 answer, source = query_rag(prompt)
                 print("ANSWER:", answer)
@@ -288,7 +296,11 @@ class StreamlitApp:
         
         # Handle user input
         if prompt := st.chat_input("Ask ITS support chatbot"):
-            # handle_rate_limiting()
+            st.session_state.messages["ignore"] = {"role": "ignore", "content": "ignore"}
+            # is_server_free = handle_rate_limiting()
+            # if not is_server_free:
+            #     st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
+            #     st.stop()  # Stop further processing of the app
             # creating user_message_id and assistant_message_id with the same unique "id" because they are related
             unique_id = str(uuid4())
             user_message_id = f"user_message_{unique_id}"
@@ -302,7 +314,8 @@ class StreamlitApp:
             print("after run_query:", st.session_state)
             if response:
                 st.rerun()
-                return
+            else:
+                st.stop()  # Stop further processing of the app
             
         # Handle the case where the query is still running but interrupted due to feedback buttons
         if st.session_state.get("QUERY_RUNNING", None):
@@ -312,6 +325,8 @@ class StreamlitApp:
             print("after QUERY_RUNNING:", st.session_state)
             if response:
                 st.rerun()
+            else:
+                st.stop()  # Stop further processing of the app
 
 
 if __name__ == "__main__":
