@@ -18,7 +18,11 @@ class ScoreThresholdRetriever(BaseRetriever):
     score_threshold: float = Field(default=0.1, description="Minimum score threshold for a document to be considered relevant")
     k: int = Field(default=5, description="Number of documents to retrieve")
 
-    def get_relevant_documents(self, query:str) -> List[Any]:
+    def _get_relevant_documents(self, query:str) -> List[Any]:
+        # This method is not implemented in the base class
+        pass
+
+    def get_related_documents(self, query:str) -> List[Any]:
         """
         Get relevant documents based on the query
 
