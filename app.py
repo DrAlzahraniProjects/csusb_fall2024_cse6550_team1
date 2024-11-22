@@ -222,8 +222,6 @@ class StreamlitApp:
 
     def display_all_messages(self):
         for message_id, message in st.session_state.messages.items():
-            if message["role"] == "ignore":
-                continue
             if message["role"] == "assistant":
                 st.markdown(f"""
                     <div class='assistant-message'>
@@ -260,7 +258,7 @@ class StreamlitApp:
             with st.spinner('Generating Response...'):
                 answer, source = None, None
                 # if not st.session_state.get("QUERY_RUNNING", None):
-                if len(st.session_state.messages) > 2:
+                if len(st.session_state.messages) > 1:
                     st.session_state["QUERY_RUNNING"] = user_message_id
                 answer, source = query_rag(prompt)
                 print("ANSWER:", answer)
@@ -297,7 +295,6 @@ class StreamlitApp:
         
         # Handle user input
         if prompt := st.chat_input("Ask ITS support chatbot"):
-            st.session_state.messages["ignore"] = {"role": "ignore", "content": "ignore"}
             is_server_free = handle_rate_limiting()
             if not is_server_free:
                 st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
