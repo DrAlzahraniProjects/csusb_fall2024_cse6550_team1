@@ -29,6 +29,8 @@ class StreamlitApp:
                 if 'user_requests' not in st.session_state:
                     st.session_state.user_requests = defaultdict(list)
                     st.session_state.current_user = None
+                if 'lockout_time' not in st.session_state:
+                    st.session_state.lockout_time = defaultdict(lambda: 0)
                 if "messages" not in session_state:
                     self.db_client.create_performance_metrics_table()
                     self.db_client.insert_default_performance_metrics()
