@@ -28,10 +28,7 @@ from retriever import ScoreThresholdRetriever
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
-
 MILVUS_URI = "/app/milvus/milvus_vector.db"
-# Connect to the Milvus database
-
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 MAX_TEXT_LENGTH = 5000
 
@@ -57,6 +54,7 @@ def query_rag(query):
     
     Returns:
         str: The answer to the query
+        str: The source of the information
     """
     try:
         # Define the model
@@ -69,7 +67,6 @@ def query_rag(query):
         retriever = ScoreThresholdRetriever(score_threshold=0.2, k=3)
         document_chain = create_stuff_documents_chain(chat_model, prompt)
         query_embedding = np.array(model.encode(query), dtype=np.float32).tolist()
-        # query_embedding = model.encode(query)
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
         # Retrieve the most relevant document based on the query
         retrieved_documents = retriever.get_related_documents(query_embedding, collection=collection)
@@ -90,7 +87,6 @@ def query_rag(query):
             "input": query,
             "context": retrieved_documents
         })
-        # response_text = response.get("answer", "I couldn't generate a response.")
 
         # Add the source to the response if available
         if isinstance(source, str) and source != "Unknown":
@@ -151,10 +147,14 @@ def get_existing_hashes_from_db(collection: Collection):
 
 async def _load_documents_from_web_and_db(collection: Collection):
     """
-    Concurrently load documents from the web and the database
+    Load the documents from the web and the database simultaneously
 
     Args:
         collection (Collection): The collection to query
+
+    Returns:
+        list: The documents loaded from the web
+        set: The set of existing hashed values
     """
     with ThreadPoolExecutor() as pool:
         loop = asyncio.get_event_loop()
@@ -195,7 +195,6 @@ def initialize_milvus(uri: str=MILVUS_URI):
             hashed_text = hash_text(text)
             if hashed_text in existing_hashes:
                 # Remove the hash from the existing hashes
-                # existing_hashes.remove(hashed_text)
                 common_hashes.add(hashed_text)
             else:
                 # Add the document to the list of documents to insert
@@ -329,15 +328,10 @@ def hash_text(text):
 
 def create_vector_store(docs):
     """
-    This function initializes a vector store using the provided documents and embeddings.
+    Create a vector store in the local Milvus database
 
     Args:
-        docs (list): A list of documents to be stored in the vector store.
-        embeddings : A function or model that generates embeddings for the documents.
-        uri (str): Path to the local milvus db
-
-    Returns:
-        vector_store: The vector store created
+        docs (list): The list of documents to insert into the vector store
     """
     if docs == []:
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
@@ -372,7 +366,6 @@ def create_vector_store(docs):
         count += 1
     
     collection.load()
-
     print("Vector Store Created")
 
 

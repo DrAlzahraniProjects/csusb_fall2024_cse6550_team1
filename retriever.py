@@ -80,9 +80,6 @@ class ScoreThresholdRetriever(BaseRetriever):
                         'source': source
                     }
                 )
-                # doc.metadata["score"] = normalized_score
-                # doc.metadata["title"] = doc.get("title", "Untitled")
-                # doc.metadata["source"] = doc.get("source", "Unknown")
                 relevant_documents.append(res)
 
         # Sort the relevant documents by score in descending order
