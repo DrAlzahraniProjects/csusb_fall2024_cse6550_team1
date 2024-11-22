@@ -42,8 +42,14 @@ Before you begin, ensure you have the following installed on your machine:
    ```bash
    cd csusb_fall2024_cse6550_team1
    ```
+3. **Discard changes**
 
-3. **Update the local repository**
+   Discard all local changes:
+   ```bash
+   git reset --hard
+   ```
+
+5. **Update the local repository**
 
    Ensure your local repository is up to date by running:
 
@@ -51,7 +57,7 @@ Before you begin, ensure you have the following installed on your machine:
    git pull origin main
    ```
    
-4. **Build the Docker image**
+6. **Build the Docker image**
 
    Build the Docker image using the following command:
 
@@ -61,7 +67,7 @@ Before you begin, ensure you have the following installed on your machine:
    docker build -t team1_app:latest . --build-arg MISTRAL=
    ```
 
-5. **Include the API key**
+7. **Include the API key**
 
    - Go to [Team1 QA](https://csusb.instructure.com/courses/43192/discussion_topics/419701) and copy the MISTRAL API key
    - Paste the API key at the end of the previous instruction
@@ -71,7 +77,7 @@ Before you begin, ensure you have the following installed on your machine:
    ```
    - Run the command
 
-6. **Run the Docker container**
+8. **Run the Docker container**
 
    ### Windows PS or Docker Desktop Terminal
 
