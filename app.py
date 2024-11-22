@@ -29,6 +29,8 @@ class StreamlitApp:
                 if 'user_requests' not in st.session_state:
                     st.session_state.user_requests = defaultdict(list)
                     st.session_state.current_user = None
+                if 'lockout_time' not in st.session_state:
+                    st.session_state.lockout_time = defaultdict(lambda: 0)
                 if "messages" not in session_state:
                     self.db_client.create_performance_metrics_table()
                     self.db_client.insert_default_performance_metrics()
@@ -222,8 +224,6 @@ class StreamlitApp:
 
     def display_all_messages(self):
         for message_id, message in st.session_state.messages.items():
-            if message["role"] == "ignore":
-                continue
             if message["role"] == "assistant":
                 st.markdown(f"""
                     <div class='assistant-message'>
@@ -260,7 +260,7 @@ class StreamlitApp:
             with st.spinner('Generating Response...'):
                 answer, source = None, None
                 # if not st.session_state.get("QUERY_RUNNING", None):
-                if len(st.session_state.messages) > 2:
+                if len(st.session_state.messages) > 1:
                     st.session_state["QUERY_RUNNING"] = user_message_id
                 answer, source = query_rag(prompt)
                 print("ANSWER:", answer)
@@ -297,7 +297,6 @@ class StreamlitApp:
         
         # Handle user input
         if prompt := st.chat_input("Ask ITS support chatbot"):
-            st.session_state.messages["ignore"] = {"role": "ignore", "content": "ignore"}
             is_server_free = handle_rate_limiting()
             if not is_server_free:
                 st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
