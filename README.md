@@ -86,7 +86,7 @@ Before you begin, ensure you have the following installed on your machine:
    Run the Docker container with the following command:
 
    ```bash
-   docker run -v %cd%/milvus:/app/milvus -v %cd%/logs:/app/logs -d -p 5001:5001 -p 6001:6001 team1_app
+   docker run -v "%cd%"/milvus:/app/milvus -v "%cd%"/logs:/app/logs -d -p 5001:5001 -p 6001:6001 team1_app
    ```
 
    ### Linux CLI
