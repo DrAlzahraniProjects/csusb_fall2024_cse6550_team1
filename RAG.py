@@ -1,7 +1,9 @@
 CORPUS_SOURCE = 'https://www.csusb.edu/its'
 
 import os
+import streamlit as st
 import time
+import re
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
@@ -13,7 +15,6 @@ from langchain_milvus import Milvus
 from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.chains import create_retrieval_chain
 from langchain_huggingface import HuggingFaceEmbeddings
 from pymilvus import connections, utility
 from requests.exceptions import HTTPError
@@ -57,12 +58,11 @@ def query_rag(query):
         # Create the prompt and components for the RAG model
         prompt = create_prompt()
         vector_store = load_existing_db(uri=MILVUS_URI)
-        retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=3)
+        retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=5)
         document_chain = create_stuff_documents_chain(model, prompt)
-        retrieval_chain = create_retrieval_chain(retriever, document_chain)
     
         # Retrieve the most relevant document based on the query
-        retrieved_documents = retriever.get_relevant_documents(query)
+        retrieved_documents = retriever.get_related_documents(query)
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
@@ -76,15 +76,18 @@ def query_rag(query):
         print("Most Relevant Document Retrieved")
 
         # Generate a response using retrieval chain
-        response = retrieval_chain.invoke({"input": f"{query}"})
-        response_text = response.get("answer", "I couldn't generate a response.")
+        response = document_chain.invoke({
+            "input": query,
+            "context": retrieved_documents
+        })
+        # response_text = response.get("answer", "I couldn't generate a response.")
 
         # Add the source to the response if available
         if isinstance(source, str) and source != "Unknown":
-            response_text += f"\n\nSource: [{title}]({source})"
+            response += f"\n\nSource: [{title}]({source})"
             print("Response Generated")
         
-        return response_text, source
+        return response, source
             
     except HTTPStatusError as e:
         print(f"HTTPStatusError: {e}")
@@ -243,7 +246,7 @@ def vector_store_check(uri):
     connections.connect("default",uri=uri)
 
     # Return True if exists, False otherwise
-    return utility.has_collection("IT_support")
+    return utility.has_collection(re.sub(r'\W+', '', CORPUS_SOURCE))
 
 def create_vector_store(docs, embeddings, uri):
     """
@@ -261,7 +264,7 @@ def create_vector_store(docs, embeddings, uri):
     vector_store = Milvus.from_documents(
         documents=docs,
         embedding=embeddings,
-        collection_name="IT_support",
+        collection_name=re.sub(r'\W+', '', CORPUS_SOURCE),
         connection_args={"uri": uri},
         drop_old=True,
     )
@@ -280,11 +283,19 @@ def load_existing_db(uri=MILVUS_URI):
         vector_store: The vector store created
     """
     # Load an existing vector store
-    vector_store = Milvus(
-        collection_name="IT_support",
-        embedding_function = get_embedding_function(),
-        connection_args={"uri": uri},
-    )
+    # vector_store = Milvus(
+    #     collection_name="IT_support",
+    #     embedding_function = get_embedding_function(),
+    #     connection_args={"uri": uri},
+    # )
+    # print("Vector Store Loaded")
+    vector_store = st.session_state.get("vector_store", None)
+    if vector_store is None:
+        vector_store = Milvus(
+            collection_name=re.sub(r'\W+', '', CORPUS_SOURCE),
+            embedding_function = get_embedding_function(),
+            connection_args={"uri": uri},
+        )
     print("Vector Store Loaded")
     return vector_store
 
