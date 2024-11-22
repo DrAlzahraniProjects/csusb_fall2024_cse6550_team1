@@ -233,7 +233,7 @@ def main():
     
     # Handle user input
     if prompt := st.chat_input("Ask ITS support chatbot"):
-        handle_rate_limiting()
+        
         # creating user_message_id and assistant_message_id with the same unique "id" because they are related
         unique_id = str(uuid4())
         user_message_id = f"user_message_{unique_id}"
@@ -242,7 +242,7 @@ def main():
         # save the user message in the session state
         st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}
         st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
-
+        handle_rate_limiting()
         response_placeholder = st.empty()
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
