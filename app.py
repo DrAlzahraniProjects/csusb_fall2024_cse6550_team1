@@ -28,6 +28,7 @@ class StreamlitApp:
             with st.spinner("Initializing ITS Support Chatbot, Please Wait..."):
                 if 'user_requests' not in st.session_state:
                     st.session_state.user_requests = defaultdict(list)
+                    st.session_state.current_user = None
                 if "messages" not in session_state:
                     self.db_client.create_performance_metrics_table()
                     self.db_client.insert_default_performance_metrics()
@@ -297,10 +298,10 @@ class StreamlitApp:
         # Handle user input
         if prompt := st.chat_input("Ask ITS support chatbot"):
             st.session_state.messages["ignore"] = {"role": "ignore", "content": "ignore"}
-            # is_server_free = handle_rate_limiting()
-            # if not is_server_free:
-            #     st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
-            #     st.stop()  # Stop further processing of the app
+            is_server_free = handle_rate_limiting()
+            if not is_server_free:
+                st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
+                st.stop()  # Stop further processing of the app
             # creating user_message_id and assistant_message_id with the same unique "id" because they are related
             unique_id = str(uuid4())
             user_message_id = f"user_message_{unique_id}"
