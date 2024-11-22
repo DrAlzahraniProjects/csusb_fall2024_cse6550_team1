@@ -9,7 +9,6 @@ import pandas as pd
 from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
 from ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
 
-@st.cache_resource
 def initialize_vector_store():
     if not hasattr(st.session_state, "vector_store_initialized"):
         vector_store = initialize_milvus()
