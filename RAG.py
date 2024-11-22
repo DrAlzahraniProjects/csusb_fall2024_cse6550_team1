@@ -5,13 +5,15 @@ import os
 import streamlit as st
 import time
 import re
+import numpy as np
+import hashlib
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
-#from langchain_mistralai import MistralAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai.chat_models import ChatMistralAI
-#from langchain_cohere import ChatCohere
 from langchain_milvus import Milvus
 from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
 from bs4 import BeautifulSoup
@@ -28,18 +30,20 @@ load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 
 MILVUS_URI = "/app/milvus/milvus_vector.db"
-MAX_TEXT_LENGTH = 5000
-MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
+# Connect to the Milvus database
 
-def get_embedding_function():
+MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
+MAX_TEXT_LENGTH = 5000
+
+def get_embedding_model():
     """
-    returns embedding function for the model
+    returns the embedding model
 
     Returns:
-        embedding function
+        embedding model
     """
-    embedding_function = HuggingFaceEmbeddings(model_name=MODEL_NAME)
-    return embedding_function
+    model = SentenceTransformer(MODEL_NAME)
+    return model
 
 def query_rag(query):
     """
@@ -56,17 +60,19 @@ def query_rag(query):
     """
     try:
         # Define the model
-        model = ChatMistralAI(model='open-mistral-7b', temperature = 0.2)
+        chat_model = ChatMistralAI(model='open-mistral-7b', temperature = 0.2)
         print("Model Loaded")
 
         # Create the prompt and components for the RAG model
         prompt = create_prompt()
-        vector_store = load_existing_db(uri=MILVUS_URI)
-        retriever = ScoreThresholdRetriever(vector_store=vector_store, score_threshold=0.2, k=5)
-        document_chain = create_stuff_documents_chain(model, prompt)
-    
+        model = get_embedding_model()
+        retriever = ScoreThresholdRetriever(score_threshold=0.2, k=3)
+        document_chain = create_stuff_documents_chain(chat_model, prompt)
+        query_embedding = np.array(model.encode(query), dtype=np.float32).tolist()
+        # query_embedding = model.encode(query)
+        collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
         # Retrieve the most relevant document based on the query
-        retrieved_documents = retriever.get_related_documents(query)
+        retrieved_documents = retriever.get_related_documents(query_embedding, collection=collection)
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
@@ -125,6 +131,40 @@ def create_prompt():
 
     return prompt
 
+def get_existing_hashes_from_db(collection: Collection):
+    """
+    Get the existing hashed values from the database
+
+    Args:
+        collection (Collection): The collection to query
+
+    Returns:
+        set: The set of existing hashed values
+    """
+    existing_hashes = set()
+    query_results = collection.query(expr="hash_id != ''", output_fields=["hash_id"])
+
+    for results in query_results:
+        existing_hashes.add(results["hash_id"])
+
+    return existing_hashes
+
+async def _load_documents_from_web_and_db(collection: Collection):
+    """
+    Concurrently load documents from the web and the database
+
+    Args:
+        collection (Collection): The collection to query
+    """
+    with ThreadPoolExecutor() as pool:
+        loop = asyncio.get_event_loop()
+        documents_future = loop.run_in_executor(pool, load_documents_from_web)
+
+        hashes_future = loop.run_in_executor(pool, get_existing_hashes_from_db, collection)
+
+        documents, existing_hashes = await asyncio.gather(documents_future, hashes_future)
+
+        return documents, existing_hashes
 
 def initialize_milvus(uri: str=MILVUS_URI):
     """
@@ -136,32 +176,48 @@ def initialize_milvus(uri: str=MILVUS_URI):
     Returns:
         vector_store: The vector store created
     """
+    connections.connect("default",uri=MILVUS_URI)
+
     if vector_store_check(uri):
-        vector_store = load_existing_db(uri)
-    else:
-        embeddings = get_embedding_function()
-        print("Embeddings Loaded")
-        documents = load_documents_from_web()
-        print("Documents Loaded")
-        print(len(documents))
+        collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
+        documents, existing_hashes = asyncio.run(_load_documents_from_web_and_db(collection))
 
         # Split the documents into chunks
         docs = split_documents(documents=documents)
-        print("Documents Splitting completed")
 
-        vector_store = create_vector_store(docs, embeddings, uri)
+        # Initialize sets to store common hashes and documents to insert
+        common_hashes = set()
+        documents_to_insert = []
 
-    return vector_store
+        # Check if the documents from the website are already in the database
+        for doc in docs:
+            text = doc.page_content[:MAX_TEXT_LENGTH]
+            hashed_text = hash_text(text)
+            if hashed_text in existing_hashes:
+                # Remove the hash from the existing hashes
+                # existing_hashes.remove(hashed_text)
+                common_hashes.add(hashed_text)
+            else:
+                # Add the document to the list of documents to insert
+                print("Hashed Text insert", hashed_text)
+                documents_to_insert.append(doc)
+        
+        existing_hashes = existing_hashes - common_hashes
+        print("Existing Hashes", existing_hashes)
+        print("Documents to Insert", documents_to_insert)
+        if existing_hashes:
+            for hash_to_delete in existing_hashes:
+                # collection.query(expr=f"hash_id == {hash_to_delete}", delete=True)
+                collection.delete(expr = f"hash_id == '{hash_to_delete}'")
+            print("Deleted outdated documents")
+        create_vector_store(documents_to_insert)
+    else:
+        documents = load_documents_from_web()
+        print("Documents Loaded")
+        # Split the documents into chunks
+        docs = split_documents(documents=documents)
+        create_vector_store(docs)
 
-def get_embedding_model():
-    """
-    returns the embedding model
-
-    Returns:
-        embedding model
-    """
-    model = SentenceTransformer(MODEL_NAME)
-    return model
 
 def load_documents_from_web():
     """
@@ -235,9 +291,9 @@ def split_documents(documents):
     """
     # Create a text splitter to split the documents into chunks
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,  # Split the text into chunks of 1000 characters
-        chunk_overlap=300,  # Overlap the chunks by 300 characters
-        is_separator_regex=False,  
+        chunk_size=500,  # Split the text into chunks of 1000 characters
+        chunk_overlap=200,  # Overlap the chunks by 300 characters
+        is_separator_regex=False,
     )
     # Split the documents into chunks
     docs = text_splitter.split_documents(documents)
@@ -255,9 +311,6 @@ def vector_store_check(uri):
     """
     head = os.path.split(uri)
     os.makedirs(head[0], exist_ok=True)
-    
-    # Connect to the Milvus database
-    connections.connect("default",uri=uri)
 
     # Return True if exists, False otherwise
     return utility.has_collection(re.sub(r'\W+', '', CORPUS_SOURCE))
@@ -274,7 +327,7 @@ def hash_text(text):
     """
     return hashlib.md5(text.encode()).hexdigest()
 
-def create_vector_store(docs, embeddings, uri):
+def create_vector_store(docs):
     """
     This function initializes a vector store using the provided documents and embeddings.
 
@@ -319,6 +372,7 @@ def create_vector_store(docs, embeddings, uri):
         count += 1
     
     collection.load()
+
     print("Vector Store Created")
 
 
