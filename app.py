@@ -25,7 +25,7 @@ class StreamlitApp:
             st.session_state.app_initialized = False
             print("APP_INITIALIZED:", st.session_state.app_initialized)
         if not st.session_state.app_initialized:
-            with st.spinner("Initializing ITS Support Chatbot, Please Wait..."):
+            with st.spinner("Initializing ITS Support Chatbot: May take up to 2 minutes..."):
                 if 'user_requests' not in st.session_state:
                     st.session_state.user_requests = defaultdict(list)
                     st.session_state.current_user = None
@@ -336,7 +336,7 @@ if __name__ == "__main__":
         os.environ["STREAMLIT_RUNNING"] = "1"
         with open('/app/logs/app.log', 'w') as file:
             file.write('')
-        subprocess.run(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0", "--server.baseUrlPath=/team1"])
+        subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0", "--server.baseUrlPath=/team1"])
         subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root", "--NotebookApp.base_url=/team1/jupyter"])
     else:
         print("ENVIRONMENT_VARIABLES before streamlitApp", os.environ)
