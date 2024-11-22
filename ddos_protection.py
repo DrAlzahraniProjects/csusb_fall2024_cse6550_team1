@@ -2,16 +2,18 @@ import time
 import random
 from collections import defaultdict
 import streamlit as st
+import extra_streamlit_components as stx
 
+cookie_manager = stx.CookieManager()
 random.seed(1)
 
 # Function to get the remote IP address
 def get_remote_ip():
     # You can substitute this with a different method if you need to access headers directly, 
     # or use a proxy like NGINX that passes the client IP in a header.
-    if st.session_state.current_user is None:
-        st.session_state.current_user = random.randrange(0, 10000)
-    return st.session_state.current_user  # Substitute this with actual IP fetching logic (like from request headers)
+    if cookie_manager.get(cookie='user_id') is None:
+        cookie_manager.set('user_id', random.randrange(0, 10000))
+    return cookie_manager.get(cookie='user_id')  # Substitute this with actual IP fetching logic (like from request headers)
 
 # Rate limit checker function
 def is_rate_limited(user_ip):
