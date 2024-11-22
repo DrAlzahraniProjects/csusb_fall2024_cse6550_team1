@@ -1,7 +1,9 @@
 CORPUS_SOURCE = 'https://www.csusb.edu/its'
 
 import os
+import streamlit as st
 import time
+import re
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
@@ -60,7 +62,7 @@ def query_rag(query):
         document_chain = create_stuff_documents_chain(model, prompt)
     
         # Retrieve the most relevant document based on the query
-        retrieved_documents = retriever.get_relevant_documents(query)
+        retrieved_documents = retriever.get_related_documents(query)
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
@@ -244,7 +246,7 @@ def vector_store_check(uri):
     connections.connect("default",uri=uri)
 
     # Return True if exists, False otherwise
-    return utility.has_collection("IT_support")
+    return utility.has_collection(re.sub(r'\W+', '', CORPUS_SOURCE))
 
 def create_vector_store(docs, embeddings, uri):
     """
@@ -262,7 +264,7 @@ def create_vector_store(docs, embeddings, uri):
     vector_store = Milvus.from_documents(
         documents=docs,
         embedding=embeddings,
-        collection_name="IT_support",
+        collection_name=re.sub(r'\W+', '', CORPUS_SOURCE),
         connection_args={"uri": uri},
         drop_old=True,
     )
@@ -281,11 +283,19 @@ def load_existing_db(uri=MILVUS_URI):
         vector_store: The vector store created
     """
     # Load an existing vector store
-    vector_store = Milvus(
-        collection_name="IT_support",
-        embedding_function = get_embedding_function(),
-        connection_args={"uri": uri},
-    )
+    # vector_store = Milvus(
+    #     collection_name="IT_support",
+    #     embedding_function = get_embedding_function(),
+    #     connection_args={"uri": uri},
+    # )
+    # print("Vector Store Loaded")
+    vector_store = st.session_state.get("vector_store", None)
+    if vector_store is None:
+        vector_store = Milvus(
+            collection_name=re.sub(r'\W+', '', CORPUS_SOURCE),
+            embedding_function = get_embedding_function(),
+            connection_args={"uri": uri},
+        )
     print("Vector Store Loaded")
     return vector_store
 
