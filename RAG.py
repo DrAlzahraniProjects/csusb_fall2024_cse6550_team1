@@ -1,5 +1,6 @@
 CORPUS_SOURCE = 'https://www.csusb.edu/its'
 
+import hashlib
 import os
 import streamlit as st
 import time
@@ -14,17 +15,20 @@ from langchain_mistralai.chat_models import ChatMistralAI
 from langchain_milvus import Milvus
 from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
 from bs4 import BeautifulSoup
+from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from pymilvus import connections, utility
+from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
 from requests.exceptions import HTTPError
 from httpx import HTTPStatusError
 from retriever import ScoreThresholdRetriever
 
+
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 
-MILVUS_URI = "milvus/milvus_vector.db"
+MILVUS_URI = "/app/milvus/milvus_vector.db"
+MAX_TEXT_LENGTH = 5000
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 
 def get_embedding_function():
@@ -149,6 +153,16 @@ def initialize_milvus(uri: str=MILVUS_URI):
 
     return vector_store
 
+def get_embedding_model():
+    """
+    returns the embedding model
+
+    Returns:
+        embedding model
+    """
+    model = SentenceTransformer(MODEL_NAME)
+    return model
+
 def load_documents_from_web():
     """
     Load the documents from the web and store the page contents
@@ -248,6 +262,18 @@ def vector_store_check(uri):
     # Return True if exists, False otherwise
     return utility.has_collection(re.sub(r'\W+', '', CORPUS_SOURCE))
 
+def hash_text(text):
+    """
+    Hash the text using MD5 algorithm
+
+    Args:
+        text (str): The text to hash
+
+    Returns:
+        str: The hashed text
+    """
+    return hashlib.md5(text.encode()).hexdigest()
+
 def create_vector_store(docs, embeddings, uri):
     """
     This function initializes a vector store using the provided documents and embeddings.
@@ -260,44 +286,41 @@ def create_vector_store(docs, embeddings, uri):
     Returns:
         vector_store: The vector store created
     """
+    if docs == []:
+        collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
+        collection.load()
+        return
     # Create a new vector store and drop any existing one
-    vector_store = Milvus.from_documents(
-        documents=docs,
-        embedding=embeddings,
-        collection_name=re.sub(r'\W+', '', CORPUS_SOURCE),
-        connection_args={"uri": uri},
-        drop_old=True,
-    )
+    fields = [
+        FieldSchema(name="hash_id", dtype=DataType.VARCHAR, max_length=32, is_primary=True),
+        FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=384),
+        FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=5000),
+        FieldSchema(name="title", dtype=DataType.VARCHAR, max_length=200),
+        FieldSchema(name="source", dtype=DataType.VARCHAR, max_length=200),
+    ]
+    schema = CollectionSchema(fields, description="Collection Schema for the Vector Store")
+    print("Before Collection")
+    collection = Collection(name=re.sub(r'\W+', '', CORPUS_SOURCE), schema=schema)
+    print("After Collection")
+    print("Before Index")
+    collection.create_index(field_name="embedding", index_params={"index_type": "FLAT", "metric_type": "L2"})
+    print("After Index")
+
+    model = get_embedding_model()
+    count = 0
+    for doc in docs:
+        print(f"Inserting Document {count}", doc)
+        text = doc.page_content[:MAX_TEXT_LENGTH]
+        hash_id = hash_text(text)
+        embedding = model.encode(text)
+        title = doc.metadata.get("title", "Untitled")
+        source = doc.metadata.get("source", "Unknown")
+        collection.insert([[hash_id], [embedding], [text], [title], [source]])
+        count += 1
+    
+    collection.load()
     print("Vector Store Created")
-    return vector_store
 
-
-def load_existing_db(uri=MILVUS_URI):
-    """
-    Load an existing vector store from the local Milvus database specified by the URI.
-
-    Args:
-        uri (str, optional): Path to the local milvus db. Defaults to MILVUS_URI.
-
-    Returns:
-        vector_store: The vector store created
-    """
-    # Load an existing vector store
-    # vector_store = Milvus(
-    #     collection_name="IT_support",
-    #     embedding_function = get_embedding_function(),
-    #     connection_args={"uri": uri},
-    # )
-    # print("Vector Store Loaded")
-    vector_store = st.session_state.get("vector_store", None)
-    if vector_store is None:
-        vector_store = Milvus(
-            collection_name=re.sub(r'\W+', '', CORPUS_SOURCE),
-            embedding_function = get_embedding_function(),
-            connection_args={"uri": uri},
-        )
-    print("Vector Store Loaded")
-    return vector_store
 
 if __name__ == '__main__':
     pass
