@@ -19,7 +19,7 @@ def is_rate_limited(user_ip):
     #requests = st.session_state.user_requests[user_ip]
 
     # Check if the user is in the lockout period
-    if current_time < st.session_state.lockout_time[user_ip]:
+    if current_time < st.session_state.get("lockout_time", {}).get(user_ip, 0):
         return True
     
     # Clean up the list to remove timestamps older than 1 minute
