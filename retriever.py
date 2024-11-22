@@ -1,6 +1,7 @@
-from langchain.schema import BaseRetriever
+from langchain.schema import BaseRetriever, Document
 import numpy as np
 from pydantic import Field
+from pymilvus import Collection
 from typing import List, Any
 
 class ScoreThresholdRetriever(BaseRetriever):
@@ -14,15 +15,14 @@ class ScoreThresholdRetriever(BaseRetriever):
 
     """
 
-    vector_store: Any = Field(..., description="Vector store for similarity search")
     score_threshold: float = Field(default=0.1, description="Minimum score threshold for a document to be considered relevant")
     k: int = Field(default=5, description="Number of documents to retrieve")
 
-    def _get_relevant_documents(self, query:str) -> List[Any]:
+    def _get_relevant_documents(self) -> List[Any]:
         # This method is not implemented in the base class
         pass
 
-    def get_related_documents(self, query:str) -> List[Any]:
+    def get_related_documents(self, query_embedding, collection: Collection) -> List[Any]:
         """
         Get relevant documents based on the query
 
@@ -33,7 +33,19 @@ class ScoreThresholdRetriever(BaseRetriever):
             List[Document]: The list of relevant documents
         """
         try:
-            docs_and_scores = self.vector_store.similarity_search_with_score(query, k=self.k)
+            search_params = {
+                "metric_type": "L2",
+                "params": {"nprobe": 10}
+            }
+            result = collection.search(
+                data = [query_embedding],
+                anns_field = "embedding",
+                param = search_params,
+                limit = self.k,
+                output_fields = ["title", "text" ,"source"]
+            )
+            docs_and_scores = result[0]
+            # docs_and_scores = self.vector_store.similarity_search_with_score(query, k=self.k)
         except Exception:
             return []
 
@@ -44,15 +56,31 @@ class ScoreThresholdRetriever(BaseRetriever):
         # Initialize variables for tracking the most relevant document
         relevant_documents = []
 
-        for doc, score in docs_and_scores:
+        for doc in docs_and_scores:
+            score = doc.distance
             normalized_score = self._normalize_score(score)
-
+            print("Doc: ", doc)
+            print("Normalized score: ", normalized_score)
+            page_content = doc.entity.get("text")
+            title = doc.entity.get("title")
+            source = doc.entity.get("source")
+            if page_content is None:
+                page_content = ""
+            if title is None:
+                title = "Untitled"
+            if source is None:
+                source = "Unknown"
             # Check if the document is relevant and has a higher score than the current highest score
             if normalized_score >= self.score_threshold:
-                doc.metadata["score"] = normalized_score
-                doc.metadata["title"] = doc.metadata.get("title", "Untitled")
-                doc.metadata["source"] = doc.metadata.get("source", "Unknown")
-                relevant_documents.append(doc)
+                res = Document(
+                    page_content = page_content,
+                    metadata = {
+                        'score': normalized_score,
+                        'title': title,
+                        'source': source
+                    }
+                )
+                relevant_documents.append(res)
 
         # Sort the relevant documents by score in descending order
         relevant_documents.sort(key=lambda x: x.metadata["score"], reverse=True)
