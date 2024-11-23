@@ -1,22 +1,23 @@
+from logger import Logger
 import streamlit as st
 from uuid import uuid4
 import time
 import os
 import subprocess
-from RAG import initialize_milvus, query_rag
+from RAG import BackendClient
 from collections import defaultdict
 import pandas as pd
 from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
 from ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
 
-def initialize_vector_store():
-    if not hasattr(st.session_state, "vector_store_initialized"):
-        initialize_milvus()
-        st.session_state.vector_store_initialized = True
+# def initialize_vector_store():
+    
 class StreamlitApp:
 
     def __init__(self, session_state=st.session_state):
         self.db_client = DatabaseClient()
+        self.backend = BackendClient()
+        self.logger = Logger("app")
         if "app_initialized" not in st.session_state:
             st.session_state.app_initialized = False
         if not st.session_state.app_initialized:
@@ -29,7 +30,10 @@ class StreamlitApp:
                 if "messages" not in session_state:
                     self.db_client.create_performance_metrics_table()
                     self.db_client.insert_default_performance_metrics()
-                    initialize_vector_store()
+                    if not hasattr(st.session_state, "vector_store_initialized"):
+                        self.backend.initialize_milvus()
+                        st.session_state.vector_store_initialized = True
+                    # initialize_vector_store()
                     st.session_state.messages = {}
                     st.session_state.app_initialized = True
         # Answerable and Unanswerable questions
@@ -74,6 +78,7 @@ class StreamlitApp:
                 st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
         except FileNotFoundError:
             st.error(f"css file '{file_name}' not found.")
+            self.logger.error("CSS file not found")
 
     def color_cells(self, val):
         """
@@ -156,6 +161,7 @@ class StreamlitApp:
         # Reset Button
         if st.sidebar.button("Reset"):
             self.db_client.reset_performance_metrics()
+            self.logger.debug("Confusion Matrix is reset")
             # st.rerun()
 
 
@@ -168,6 +174,7 @@ class StreamlitApp:
         """
         previous_feedback = st.session_state.messages[assistant_message_id].get("feedback", None)
         feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
+        self.logger.debug(f"Retrieved feedback for assistant_message_id {assistant_message_id}: {feedback}")
         user_message_id = assistant_message_id.replace("assistant_message", "user_message", 1)
         question = st.session_state.messages[user_message_id]["content"]
 
@@ -245,6 +252,7 @@ class StreamlitApp:
         Returns:
             str: The response to the user query.
         """
+        self.logger.info("Query is running")
         # Generate a response based on the user query
         if user_message_id is None:
             user_message_id = st.session_state.get("QUERY_RUNNING")
@@ -257,7 +265,7 @@ class StreamlitApp:
                 # if not st.session_state.get("QUERY_RUNNING", None):
                 if len(st.session_state.messages) > 1:
                     st.session_state["QUERY_RUNNING"] = user_message_id
-                answer, source = query_rag(prompt)
+                answer, source = self.backend.query_rag(prompt)
 
             if source is None:
                 st.error(f"{answer}")
@@ -268,6 +276,7 @@ class StreamlitApp:
                 st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
                 if "QUERY_RUNNING" in st.session_state:
                     del st.session_state["QUERY_RUNNING"]
+                    self.logger.debug("Cleared QUERY_RUNNING state")
         return True
     
     def main(self):
@@ -281,7 +290,7 @@ class StreamlitApp:
 
         # Load the CSS file
         self.load_css("assets/style.css")
-                
+        
         # Render existing messages
         self.display_all_messages()
         
