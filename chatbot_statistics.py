@@ -1,4 +1,5 @@
 import sqlite3
+from logger import Logger
 from datetime import datetime
 
 PERFORMANCE_METRICS_ROW_ID = 1
@@ -8,6 +9,7 @@ class DatabaseClient:
     """
     def __init__(self, db_path="chatbot_stats.db"):
         self.connection = sqlite3.connect(db_path)
+        self.logger = Logger("chatbot_statistics")
         
     def create_performance_metrics_table(self):
         """
@@ -29,6 +31,7 @@ class DatabaseClient:
                 f1_score REAL
             )
         ''')
+        self.logger.debug("Created table 'performance_metrics'.")
 
     def insert_default_performance_metrics(self):
         """
@@ -39,6 +42,8 @@ class DatabaseClient:
                     INSERT INTO performance_metrics (id, true_positive, true_negative, false_positive, false_negative, accuracy, precision, sensitivity, specificity, f1_score)
                     VALUES (1, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0)
                 ''')
+            self.logger.debug("Inserted default row into 'performance_metrics' table.")
+
 
     def increment_performance_metric(self, metric: str, increment_value: int = 1):
         """
@@ -51,6 +56,7 @@ class DatabaseClient:
 
         valid_metrics = {'true_positive', 'true_negative', 'false_positive', 'false_negative'}
         if metric not in valid_metrics:
+            self.logger.error(f"Invalid metric: {metric}")
             raise ValueError(f"Invalid metric: {metric}. Valid metrics are {valid_metrics}")
 
         # Increment a metric by a given value
@@ -63,7 +69,7 @@ class DatabaseClient:
                 END
                 WHERE id = ?
             ''', (increment_value, increment_value, PERFORMANCE_METRICS_ROW_ID))
-
+            self.logger.debug(f"Incremented {metric} by {increment_value}.")
     def safe_divide(self, numerator: int, denominator: int, default: float = None):
         """
         Safely divide two numbers and return the result. If the denominator is zero, return the default value.
@@ -77,6 +83,7 @@ class DatabaseClient:
             float: The result of the division, or None if the denominator is zero
         """
         if denominator == 0:
+            self.logger.error(f"Division by zero")
             return default
         return round(numerator / denominator, 3)
 
@@ -85,6 +92,7 @@ class DatabaseClient:
         """
         Update the performance metrics based on the current values of true positive, true negative, false positive, and false negative
         """
+        self.logger.info("Updating performance metrics")
         metrics = self.get_performance_metrics('true_positive, true_negative, false_positive, false_negative')
         accuracy = self.safe_divide(metrics['true_positive'] + metrics['true_negative'], metrics['true_positive'] + metrics['true_negative'] + metrics['false_positive'] + metrics['false_negative'])
         precision = self.safe_divide(metrics['true_positive'], metrics['true_positive'] + metrics['false_positive'])
@@ -113,6 +121,7 @@ class DatabaseClient:
         Returns:
             dict: A dictionary containing the performance metrics
         """
+        self.logger.info(f"Retrieving performance metrics")
         allowed_columns = ["true_positive", "true_negative", "false_positive", "false_negative", "accuracy", "precision", "sensitivity", "specificity", "f1_score"]
         if columns == '*':
             validated_columns = columns
@@ -133,6 +142,7 @@ class DatabaseClient:
         """
         Reset the performance metrics to zero
         """
+        self.logger.debug("Resetting performance metrics to zero.")
         with self.connection:
             self.connection.execute('''
                 UPDATE performance_metrics

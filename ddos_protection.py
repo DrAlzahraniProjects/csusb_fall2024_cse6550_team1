@@ -2,6 +2,7 @@ import time
 import random
 from collections import defaultdict
 import streamlit as st
+from logger import Logger
 
 random.seed(1)
 
@@ -15,6 +16,7 @@ def get_remote_ip():
     """
     if st.session_state.current_user is None:
         st.session_state.current_user = random.randrange(0, 10000)
+        self.logger.debug("No current user session. Assigning a new random user ID.")
     return st.session_state.current_user  # Substitute this with actual IP fetching logic (like from request headers)
 
 # Rate limit checker function
