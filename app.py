@@ -11,18 +11,14 @@ from ddos_protection import handle_rate_limiting  # Importing the rate-limiting 
 
 def initialize_vector_store():
     if not hasattr(st.session_state, "vector_store_initialized"):
-        vector_store = initialize_milvus()
+        initialize_milvus()
         st.session_state.vector_store_initialized = True
-        return vector_store
-    return st.session_state.vector_store
 class StreamlitApp:
 
     def __init__(self, session_state=st.session_state):
         self.db_client = DatabaseClient()
-        print("APP_INITIALIZED:", st.session_state.get("app_initialized", None))
         if "app_initialized" not in st.session_state:
             st.session_state.app_initialized = False
-            print("APP_INITIALIZED:", st.session_state.app_initialized)
         if not st.session_state.app_initialized:
             with st.spinner("Initializing ITS Support Chatbot: May take up to 2 minutes..."):
                 if 'user_requests' not in st.session_state:
@@ -33,7 +29,7 @@ class StreamlitApp:
                 if "messages" not in session_state:
                     self.db_client.create_performance_metrics_table()
                     self.db_client.insert_default_performance_metrics()
-                    st.session_state.vector_store = initialize_vector_store()
+                    initialize_vector_store()
                     st.session_state.messages = {}
                     st.session_state.app_initialized = True
         # Answerable and Unanswerable questions
@@ -262,7 +258,6 @@ class StreamlitApp:
                 if len(st.session_state.messages) > 1:
                     st.session_state["QUERY_RUNNING"] = user_message_id
                 answer, source = query_rag(prompt)
-                print("ANSWER:", answer)
 
             if source is None:
                 st.error(f"{answer}")
@@ -308,9 +303,7 @@ class StreamlitApp:
             # save the user message in the session state
             st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}
             st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
-            print("in prompt:", st.session_state)
             response = self.run_query(prompt=prompt, user_message_id=user_message_id, assistant_message_id=assistant_message_id)
-            print("after run_query:", st.session_state)
             if response:
                 st.rerun()
             else:
@@ -319,9 +312,7 @@ class StreamlitApp:
         # Handle the case where the query is still running but interrupted due to feedback buttons
         if st.session_state.get("QUERY_RUNNING", None):
             user_message_id = st.session_state.get("QUERY_RUNNING")
-            print("in QUERY_RUNNING:", st.session_state)
             response = self.run_query(user_message_id=user_message_id)
-            print("after QUERY_RUNNING:", st.session_state)
             if response:
                 st.rerun()
             else:
@@ -337,6 +328,5 @@ if __name__ == "__main__":
         subprocess.Popen(["streamlit", "run", __file__, "--server.port=5001", "--server.address=0.0.0.0", "--server.baseUrlPath=/team1"])
         subprocess.run(["jupyter", "notebook", "--ip=0.0.0.0", "--port=6001", "--no-browser", "--allow-root", "--NotebookApp.base_url=/team1/jupyter"])
     else:
-        print("ENVIRONMENT_VARIABLES before streamlitApp", os.environ)
         app = StreamlitApp(st.session_state)
         app.main()
