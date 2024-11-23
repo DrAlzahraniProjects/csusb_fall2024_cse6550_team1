@@ -1,5 +1,6 @@
 from langchain.schema import BaseRetriever, Document
 import numpy as np
+from logger import Logger
 from pydantic import Field
 from pymilvus import Collection
 from typing import List, Any
