@@ -296,7 +296,26 @@ def split_documents(documents):
     )
     # Split the documents into chunks
     docs = text_splitter.split_documents(documents)
-    return docs
+    unique_docs = remove_duplicates(docs)
+    return unique_docs
+
+def remove_duplicates(documents):
+    """
+    Remove duplicate documents based on the page content
+
+    Args:
+        documents (list): The list of documents to remove duplicates from
+
+    Returns:
+        list: The list of unique documents
+    """
+    seen_content = set()
+    unique_documents = []
+    for doc in documents:
+        if doc.page_content not in seen_content:
+            seen_content.add(doc.page_content)
+            unique_documents.append(doc)
+    return unique_documents
 
 def vector_store_check(uri):
     """
