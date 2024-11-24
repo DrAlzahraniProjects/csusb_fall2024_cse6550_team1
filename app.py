@@ -16,6 +16,11 @@ def initialize_vector_store():
         st.session_state.vector_store_initialized = True
 
 
+def remove_special_characters(input_string):
+    special_characters = "?!@#$%^&*()-_=+[]{}\\|;:'\",<>/`~"
+    return input_string.translate(str.maketrans("", "", special_characters)).lower().strip()
+
+
 class StreamlitApp:
 
     def __init__(self, session_state=st.session_state):
@@ -37,36 +42,31 @@ class StreamlitApp:
                     st.session_state.app_initialized = True
         # Answerable and Unanswerable questions
         self.answerable_questions = {
-            "How can I contact ITS",
-            "How can I connect to the campus WiFi",
-            "What are the available free software for a student",
-            "Where are all the printers located",
-            "What are the CoyoteLabs virtual computer labs",
-            "Is Adobe Creative Cloud available as student software",
-            "What is information security awareness",
-            "How do I enable multi-factor authentication",
-            "What are Coyote OneCard benefits",
-            "What if i lost my campus laptop charger",
+            "How can I contact ITS?",
+            "How can I connect to the campus WiFi?",
+            "What are the available free software for a student?",
+            "Where are all the printers located?",
+            "What are the CoyoteLabs virtual computer labs?",
+            "Is Adobe Creative Cloud available as student software?",
+            "What is information security awareness?",
+            "How do I enable multi-factor authentication?",
+            "What are Coyote OneCard benefits?",
+            "What if i lost my campus laptop charger?",
         }
-        self.answerable_questions = {q.lower() for q in self.answerable_questions}
+        self.answerable_questions = {remove_special_characters(q) for q in self.answerable_questions}
         self.unanswerable_questions = {
-            "What are the campus gym timings",
-            "What is a smart contract",
-            "Can you write code for a basic Python script",
-            "What is the CGI phone number or email",
-            "What class does Dr. Alzahrani teach",
-            "Who is Hironori Washizaki",
-            "How can I make a payment for the tuition fee",
-            "What is the future impact of AI on software quality standards",
-            "What is regression testing",
-            "How much does parking cost for one semester",
+            "What are the campus gym timings?",
+            "What is a smart contract?",
+            "Can you write code for a basic Python script?",
+            "What is the CGI phone number or email?",
+            "What class does Dr. Alzahrani teach?",
+            "Who is Hironori Washizaki?",
+            "How can I make a payment for the tuition fee?",
+            "What is the future impact of AI on software quality standards?",
+            "What is regression testing?",
+            "How much does parking cost for one semester?",
         }
-        self.unanswerable_questions = {q.lower() for q in self.unanswerable_questions}
-
-    @staticmethod
-    def remove_special_characters(input_string):
-        special_characters = "?!@#$%^&*()-_=+[]{}\\|;:'\",<>/`~"
-        return input_string.translate(str.maketrans("", "", special_characters)).lower().strip()
+        self.unanswerable_questions = {remove_special_characters(q) for q in self.unanswerable_questions}
 
 
     @staticmethod
@@ -177,7 +177,7 @@ class StreamlitApp:
         feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
         user_message_id = assistant_message_id.replace("assistant_message", "user_message", 1)
         question = st.session_state.messages[user_message_id]["content"]
-        plain_question = self.remove_special_characters(question)
+        plain_question = remove_special_characters(question)
 
         if plain_question in self.answerable_questions:
             if feedback == 1:
