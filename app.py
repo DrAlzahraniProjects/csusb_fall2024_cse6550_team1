@@ -43,7 +43,7 @@ class StreamlitApp:
             "Where are all the printers located",
             "What are the CoyoteLabs virtual computer labs",
             "Is Adobe Creative Cloud available as student software",
-            "Does CSUSB have accessible technology",
+            "What is information security awareness",
             "How do I enable multi-factor authentication",
             "What are Coyote OneCard benefits",
             "What if i lost my campus laptop charger",

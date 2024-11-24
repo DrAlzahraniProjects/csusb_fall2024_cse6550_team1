@@ -136,7 +136,7 @@ This section highlights the sets of questions the chatbot can and cannot answer.
 | Where are all the printers located?                    | What is the CGI phone number/email?                            |
 | What are the CoyoteLabs virtual computer lab?          | What class does Dr. Alzahrani teach?                           |
 | Is Adobe Creative Cloud available as student software? | Who is Hironori Washizaki?                                     |
-| Does CSUSB have accessible technology?                 | How can I make a payment for the tuition fee?                  |
+| What is information security awareness?                | How can I make a payment for the tuition fee?                  |
 | How do I enable multi-factor authorization?            | What is the future impact of AI on software quality standards? |
 | What are Coyote OneCard benefits?                      | What is regression testing?                                    |
 | What if i lost my campus laptop charger?               | How much does parking cost for one semester?                   |
