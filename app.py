@@ -43,20 +43,20 @@ class StreamlitApp:
             "Does CSUSB have accessible technology?",
             "How do I enable multi-factor authentication?",
             "What are Coyote OneCard benefits?",
-            "Why can't I get access for wireless prints through my phone?",
+            "What if i lost my campus laptop charger?",
         }
         self.answerable_questions = {q.lower() for q in self.answerable_questions}
         self.unanswerable_questions = {
-            "How do I connect to Starbucks Wi-Fi?",
+            "What are the campus gym timings?",
             "What is a smart contract?",
             "Can you write code for a basic Python script?",
-            "Who is the dean of CSUSB?",
+            "What is the CGI phone number/email?",
             "What class does Dr. Alzahrani teach?",
             "Who is Hironori Washizaki?",
-            "When was CSUSB built?",
+            "How can I make a payment for the tuition fee?",
             "What is the future impact of AI on software quality standards?",
             "What is regression testing?",
-            "Can a student apply for a part-time job in IT support? If so, what is the process?",
+            "How much does parking cost for one semester?",
         }
         self.unanswerable_questions = {q.lower() for q in self.unanswerable_questions}
 
