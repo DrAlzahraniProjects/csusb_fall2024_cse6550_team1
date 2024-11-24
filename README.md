@@ -128,18 +128,18 @@ You can access the Jupyter Notebook at:
 This section highlights the sets of questions the chatbot can and cannot answer.
 
 
-| **Answerable**                                      | **Unanswerable**                                 |
-|-----------------------------------------------------|--------------------------------------------------|
-| How can I contact ITS?                              | How do I connect to Starbucks Wi-Fi?             |
-| How can I connect to the campus Wi-Fi?              | What is a smart contract?                        |
-| Who are the Co-Chairs for the 2024/2025 Committee?  | Can you write code for a basic Python script?     |
-| Where are all the printers located?                 | Who is the dean of CSUSB?                        |
-| What are the CoyoteLabs virtual computer lab?       | What class does Dr. Alzahrani teach?             |
-| Is Adobe Creative Cloud available as student software? | Who is Hironori Washizaki?                    |
-| Does CSUSB have accessible technology?              | When was CSUSB built?                            |
-| How do I enable multi-factor authorization?         | What is the future impact of AI on software quality standards? |
-| What are Coyote OneCard benefits?                   | What is regression testing?                     |
-| Why can't I get access for wireless prints through phone? | Can a student apply a part-time job in IT support if so what is the process? |
+| **Answerable**                                         | **Unanswerable**                                               |
+|--------------------------------------------------------|----------------------------------------------------------------|
+| How can I contact ITS?                                 | What are the campus gym timings?                               |
+| How can I connect to the campus Wi-Fi?                 | What is a smart contract?                                      |
+| What are the available free software for a student?    | Can you write code for a basic Python script?                  |
+| Where are all the printers located?                    | What is the CGI phone number/email?                            |
+| What are the CoyoteLabs virtual computer lab?          | What class does Dr. Alzahrani teach?                           |
+| Is Adobe Creative Cloud available as student software? | Who is Hironori Washizaki?                                     |
+| What is information security awareness?                | How can I make a payment for the tuition fee?                  |
+| How do I enable multi-factor authorization?            | What is the future impact of AI on software quality standards? |
+| What are Coyote OneCard benefits?                      | What is regression testing?                                    |
+| What if i lost my campus laptop charger?               | How much does parking cost for one semester?                   |
 
 
 ## Troubleshooting
