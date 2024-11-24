@@ -168,16 +168,17 @@ async def _load_documents_from_web_and_db(collection: Collection):
 
 def initialize_milvus(uri: str=MILVUS_URI):
     """
-    Initialize the vector store for the RAG model
+    Initialize the Milvus database with the vector store
 
     Args:
-        uri (str, optional): Path to the local milvus db. Defaults to MILVUS_URI.
-
-    Returns:
-        vector_store: The vector store created
+        uri (str, optional): The URI of the Milvus database. Defaults to MILVUS_URI.
     """
     connections.connect("default",uri=MILVUS_URI)
-
+    
+    if os.environ.get("vector_store_initialized", False):
+        # passing an empty list to just load the vector store
+        create_vector_store([])
+        return
     if vector_store_check(uri):
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
         documents, existing_hashes = asyncio.run(_load_documents_from_web_and_db(collection))
@@ -296,7 +297,26 @@ def split_documents(documents):
     )
     # Split the documents into chunks
     docs = text_splitter.split_documents(documents)
-    return docs
+    unique_docs = remove_duplicates(docs)
+    return unique_docs
+
+def remove_duplicates(documents):
+    """
+    Remove duplicate documents based on the page content
+
+    Args:
+        documents (list): The list of documents to remove duplicates from
+
+    Returns:
+        list: The list of unique documents
+    """
+    seen_content = set()
+    unique_documents = []
+    for doc in documents:
+        if doc.page_content not in seen_content:
+            seen_content.add(doc.page_content)
+            unique_documents.append(doc)
+    return unique_documents
 
 def vector_store_check(uri):
     """

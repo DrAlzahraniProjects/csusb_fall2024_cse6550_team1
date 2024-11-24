@@ -11,19 +11,39 @@ from ddos_protection import handle_rate_limiting  # Importing the rate-limiting 
 
 
 def initialize_vector_store():
-    if not hasattr(st.session_state, "vector_store_initialized"):
+    """
+    Initialize the vector store for storing the embeddings of the questions.
+    """
+    if not hasattr(os.environ, "vector_store_initialized"):
         initialize_milvus()
-        st.session_state.vector_store_initialized = True
-
+        os.environ.vector_store_initialized = True
 
 def remove_special_characters(input_string):
+    """
+    Remove special characters from a string and convert it to lowercase.
+
+    Args:
+        input_string (str): The input string.
+
+    Returns:
+        str: The string with special characters removed and converted to lowercase.
+    """
     special_characters = "?!@#$%^&*()-_=+[]{}\\|;:'\",<>/`~"
     return input_string.translate(str.maketrans("", "", special_characters)).lower().strip()
 
 
 class StreamlitApp:
+    """
+    Streamlit App class to handle the chatbot app.
+    """
 
     def __init__(self, session_state=st.session_state):
+        """
+        Initialize the Streamlit App.
+
+        Args:
+            session_state (dict): The session state dictionary.
+        """
         self.db_client = DatabaseClient()
         if "app_initialized" not in st.session_state:
             st.session_state.app_initialized = False
