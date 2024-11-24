@@ -168,16 +168,17 @@ async def _load_documents_from_web_and_db(collection: Collection):
 
 def initialize_milvus(uri: str=MILVUS_URI):
     """
-    Initialize the vector store for the RAG model
+    Initialize the Milvus database with the vector store
 
     Args:
-        uri (str, optional): Path to the local milvus db. Defaults to MILVUS_URI.
-
-    Returns:
-        vector_store: The vector store created
+        uri (str, optional): The URI of the Milvus database. Defaults to MILVUS_URI.
     """
     connections.connect("default",uri=MILVUS_URI)
-
+    
+    if os.environ.get("vector_store_initialized", False):
+        # passing an empty list to just load the vector store
+        create_vector_store([])
+        return
     if vector_store_check(uri):
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
         documents, existing_hashes = asyncio.run(_load_documents_from_web_and_db(collection))
