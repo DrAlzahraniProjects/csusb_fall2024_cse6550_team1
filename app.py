@@ -117,16 +117,16 @@ class StreamlitApp:
         if "TP" in val and val[0] != '0' or "TN" in val and val[0] != '0':
             return {
                 "background-color": "#90f7aa",  # Light green for correct predictions
-                "color": "#013b0f"  # Dark green text
+                "color": "#767676"  # Dark green text
             }
         elif "FP" in val and val[0] != '0' or "FN" in val and val[0] != '0':
             return {
                 "background-color": "#fbc5ca",  # Light red for incorrect predictions
-                "color": "#4b0007"  # Dark red text
+                "color": "#767676"  # Dark red text
             }
         return {
             "background-color": "transparent",  # Default white background
-            "color": "#000000"  # Default black text
+            "color": "#767676"  # Default black text
         }
 
     def display_performance_metrics(self):
