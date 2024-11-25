@@ -142,8 +142,8 @@ class StreamlitApp:
             unsafe_allow_html=True
         )
         important_metrics = [
-            ("Sensitivity", "sensitivity"),
-            ("Specificity", "specificity"),
+            ("Sensitivity (true positive rate)", "sensitivity"),
+            ("Specificity (true negative rate)", "specificity"),
         ]
         result = self.db_client.get_performance_metrics()
         imp_container = st.sidebar.empty()
