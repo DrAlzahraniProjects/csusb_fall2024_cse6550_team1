@@ -115,7 +115,6 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
 
 table {
     border-spacing: 0;
-    border-radius: 15px; /* Add rounded corners */
     overflow: hidden; /* Ensure rounded corners appear */
     width: 100%;
 }
