@@ -76,19 +76,23 @@ def is_answer_relevant(model, answer, context):
     Returns:
         str: The response from the LLM after rechecking.
     """
-    prompt = recheck_prompt()
+    try:
+        prompt = recheck_prompt()
 
-    llm_input = prompt.format_messages(
-        input=answer,
-        context=context
-    )
-    recheck_response = model.invoke(llm_input)
-    print("Recheck Response: ", recheck_response)
-    recheck_output = recheck_response.content
+        llm_input = prompt.format_messages(
+            input=answer,
+            context=context
+        )
+        recheck_response = model.invoke(llm_input)
+        print("Recheck Response: ", recheck_response)
+        recheck_output = recheck_response.content
 
-    if "true" in recheck_output.lower() :
+        if "true" in recheck_output.lower() :
+            return True
+        return False
+    except HTTPStatusError as e:
+        print(f"HTTPStatusError: {e}")
         return True
-    return False
 
 def is_filtered_query(query):
     patterns = [
