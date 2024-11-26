@@ -14,14 +14,11 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_mistralai.chat_models import ChatMistralAI
-from langchain_milvus import Milvus
-from langchain_community.document_loaders import WebBaseLoader, RecursiveUrlLoader
+from langchain_community.document_loaders import RecursiveUrlLoader
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
 from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
-from requests.exceptions import HTTPError
 from httpx import HTTPStatusError
 from retriever import ScoreThresholdRetriever
 
@@ -31,16 +28,35 @@ MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
 MILVUS_URI = "/app/milvus/milvus_vector.db"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 MAX_TEXT_LENGTH = 5000
+EMBEDDING_MODEL = None
 
 def get_embedding_model():
     """
-    returns the embedding model
+    Get the embedding model for the RAG model
 
     Returns:
-        embedding model
+        SentenceTransformer: The embedding model
     """
-    model = SentenceTransformer(MODEL_NAME)
-    return model
+    global EMBEDDING_MODEL
+    if EMBEDDING_MODEL is None:
+        EMBEDDING_MODEL = SentenceTransformer(MODEL_NAME)
+    return EMBEDDING_MODEL
+
+def is_filtered_query(query):
+    patterns = [
+        r"\b(hi|hello|hey|hiya|howdy|greetings|yo)\b", # Common greetings
+        r"who (are|r) you\??", # Identity questions
+        r"what('?s| is) your name\??", # Name questions
+        r"(hi|hello|hey|yo),? (who are you|what('?s| is) your name)\??", # Greeting + identity
+        r"(hi|hello|hey|yo),? (what do you do|what can you do)\??", # Greeting + capability
+        r"good (morning|afternoon|evening),? (who are you|what('?s| is) your role)\??", # Polite intros
+        r"(can you help me|what can you do for me)\??" # Informal assistance questions
+    ]
+    normalized = query.strip().lower()
+    for pattern in patterns:
+        if re.search(pattern, normalized):
+            return True
+    return False
 
 def query_rag(query):
     """
@@ -57,13 +73,21 @@ def query_rag(query):
         str: The source of the information
     """
     try:
+        # Check if the query is a filtered query and it is the first or second message
+        if is_filtered_query(query):
+            if CORPUS_SOURCE == 'https://www.csusb.edu/its':
+                return "Hi there! I am an ITS Support Chatbot. I can help you with your ITS related queries. How can I assist you today?", "Unknown"
+            return f"Hi there! I'm an AI assistant powered by {CORPUS_SOURCE}. I'm here to help with any questions you might have. How can I assist you today?", "Unknown"
+        
         # Define the model
         chat_model = ChatMistralAI(model='open-mistral-7b', temperature = 0.2)
         print("Model Loaded")
 
         # Create the prompt and components for the RAG model
         prompt = create_prompt()
+        print("Before embedding model")
         model = get_embedding_model()
+        print("After embedding model")
         retriever = ScoreThresholdRetriever(score_threshold=0.2, k=3)
         document_chain = create_stuff_documents_chain(chat_model, prompt)
         query_embedding = np.array(model.encode(query), dtype=np.float32).tolist()
@@ -99,7 +123,7 @@ def query_rag(query):
         print(f"HTTPStatusError: {e}")
         if e.response.status_code == 429:
             return "I am currently experiencing high traffic. Please try again later.", None
-        return "I am unable to answer this question at the moment. Please try again later.", None
+        return f"I am unable to answer this question at the moment. Please try again later. Error: {e}", None
     
 def create_prompt():
     """
@@ -147,7 +171,7 @@ def get_existing_hashes_from_db(collection: Collection):
 
 async def _load_documents_from_web_and_db(collection: Collection):
     """
-    Load the documents from the web and the database simultaneously
+    Load the documents from the web and the database and the embedding model simultaneously
 
     Args:
         collection (Collection): The collection to query
@@ -162,7 +186,9 @@ async def _load_documents_from_web_and_db(collection: Collection):
 
         hashes_future = loop.run_in_executor(pool, get_existing_hashes_from_db, collection)
 
-        documents, existing_hashes = await asyncio.gather(documents_future, hashes_future)
+        model_future = loop.run_in_executor(pool, get_embedding_model)
+
+        documents, existing_hashes, embedding_model = await asyncio.gather(documents_future, hashes_future, model_future)
 
         return documents, existing_hashes
 
