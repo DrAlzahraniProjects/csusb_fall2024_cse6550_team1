@@ -42,8 +42,14 @@ Before you begin, ensure you have the following installed on your machine:
    ```bash
    cd csusb_fall2024_cse6550_team1
    ```
+3. **Discard changes**
 
-3. **Update the local repository**
+   Discard all local changes:
+   ```bash
+   git reset --hard
+   ```
+
+5. **Update the local repository**
 
    Ensure your local repository is up to date by running:
 
@@ -51,7 +57,7 @@ Before you begin, ensure you have the following installed on your machine:
    git pull origin main
    ```
    
-4. **Build the Docker image**
+6. **Build the Docker image**
 
    Build the Docker image using the following command:
 
@@ -61,7 +67,7 @@ Before you begin, ensure you have the following installed on your machine:
    docker build -t team1_app:latest . --build-arg MISTRAL=
    ```
 
-5. **Include the API key**
+7. **Include the API key**
 
    - Go to [Team1 QA](https://csusb.instructure.com/courses/43192/discussion_topics/419701) and copy the MISTRAL API key
    - Paste the API key at the end of the previous instruction
@@ -71,7 +77,7 @@ Before you begin, ensure you have the following installed on your machine:
    ```
    - Run the command
 
-6. **Run the Docker container**
+8. **Run the Docker container**
 
    ### Windows PS or Docker Desktop Terminal
 
@@ -86,7 +92,7 @@ Before you begin, ensure you have the following installed on your machine:
    Run the Docker container with the following command:
 
    ```bash
-   docker run -v %cd%/milvus:/app/milvus -v %cd%/logs:/app/logs -d -p 5001:5001 -p 6001:6001 team1_app
+   docker run -v "%cd%"/milvus:/app/milvus -v "%cd%"/logs:/app/logs -d -p 5001:5001 -p 6001:6001 team1_app
    ```
 
    ### Linux CLI
@@ -122,18 +128,18 @@ You can access the Jupyter Notebook at:
 This section highlights the sets of questions the chatbot can and cannot answer.
 
 
-| **Answerable**                                      | **Unanswerable**                                 |
-|-----------------------------------------------------|--------------------------------------------------|
-| How can I contact ITS?                              | How do I connect to Starbucks Wi-Fi?             |
-| How can I connect to the campus Wi-Fi?              | What is a smart contract?                        |
-| Who are the Co-Chairs for the 2024/2025 Committee?  | Can you write code for a basic Python script?     |
-| Where are all the printers located?                 | Who is the dean of CSUSB?                        |
-| What are the CoyoteLabs virtual computer lab?       | What class does Dr. Alzahrani teach?             |
-| Is Adobe Creative Cloud available as student software? | Who is Hironori Washizaki?                    |
-| Does CSUSB have accessible technology?              | When was CSUSB built?                            |
-| How do I enable multi-factor authorization?         | What is the future impact of AI on software quality standards? |
-| What are Coyote OneCard benefits?                   | What is regression testing?                     |
-| Why can't I get access for wireless prints through phone? | Can a student apply a part-time job in IT support if so what is the process? |
+| **Answerable**                                         | **Unanswerable**                                               |
+|--------------------------------------------------------|----------------------------------------------------------------|
+| How can I contact ITS?                                 | What are the campus gym timings?                               |
+| How can I connect to the campus Wi-Fi?                 | What is a smart contract?                                      |
+| What are the available free software for a student?    | Can you write code for a basic Python script?                  |
+| Where are all the printers located?                    | What is the CGI phone number/email?                            |
+| What are the CoyoteLabs virtual computer labs?         | What class does Dr. Alzahrani teach?                           |
+| Is Adobe Creative Cloud available as student software? | Who is Hironori Washizaki?                                     |
+| What is information security awareness?                | How can I make a payment for the tuition fee?                  |
+| How do I enable multi-factor authentication?           | What is the future impact of AI on software quality standards? |
+| What are Coyote OneCard benefits?                      | What is regression testing?                                    |
+| What if i lost my campus laptop charger?               | How much does parking cost for one semester?                   |
 
 
 ## Troubleshooting
