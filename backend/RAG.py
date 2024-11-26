@@ -97,7 +97,9 @@ def query_rag(query):
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
-            return "I don't have enough information to answer this question.", "Unknown"
+            if CORPUS_SOURCE == 'https://www.csusb.edu/its':
+                return "I am an ITS Support Chatbot. I can help you with your ITS related queries. How can I assist you today?", "Unknown"
+            return f"I'm an AI assistant powered by {CORPUS_SOURCE}. I'm here to help with any questions you might have. How can I assist you today?", "Unknown"
 
         # Extract metadata from the most relevant document
         most_relevant_document = retrieved_documents[0]
