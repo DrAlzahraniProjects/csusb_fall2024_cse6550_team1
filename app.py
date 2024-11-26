@@ -63,7 +63,7 @@ class StreamlitApp:
         # Answerable and Unanswerable questions
         self.answerable_questions = {
             "How can I contact ITS?",
-            "How can I connect to the campus WiFi?",
+            "How can I connect to the campus Wi-Fi?",
             "What are the available free software for a student?",
             "Where are all the printers located?",
             "What are the CoyoteLabs virtual computer labs?",
@@ -78,7 +78,7 @@ class StreamlitApp:
             "What are the campus gym timings?",
             "What is a smart contract?",
             "Can you write code for a basic Python script?",
-            "What is the CGI phone number or email?",
+            "What is the CGI phone number/email?",
             "What class does Dr. Alzahrani teach?",
             "Who is Hironori Washizaki?",
             "How can I make a payment for the tuition fee?",
