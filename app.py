@@ -3,11 +3,11 @@ from uuid import uuid4
 # import time
 import os
 import subprocess
-from RAG import initialize_milvus, query_rag
+from backend.RAG import initialize_milvus, query_rag
 from collections import defaultdict
 import pandas as pd
-from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
-from ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
+from metrics.chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
+from backend.ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
 
 
 def initialize_vector_store():
@@ -63,7 +63,7 @@ class StreamlitApp:
         # Answerable and Unanswerable questions
         self.answerable_questions = {
             "How can I contact ITS?",
-            "How can I connect to the campus WiFi?",
+            "How can I connect to the campus Wi-Fi?",
             "What are the available free software for a student?",
             "Where are all the printers located?",
             "What are the CoyoteLabs virtual computer labs?",
@@ -78,7 +78,7 @@ class StreamlitApp:
             "What are the campus gym timings?",
             "What is a smart contract?",
             "Can you write code for a basic Python script?",
-            "What is the CGI phone number or email?",
+            "What is the CGI phone number/email?",
             "What class does Dr. Alzahrani teach?",
             "Who is Hironori Washizaki?",
             "How can I make a payment for the tuition fee?",

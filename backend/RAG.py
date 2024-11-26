@@ -20,7 +20,7 @@ from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
 from httpx import HTTPStatusError
-from retriever import ScoreThresholdRetriever
+from backend.retriever import ScoreThresholdRetriever
 
 
 load_dotenv()

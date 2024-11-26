@@ -134,10 +134,10 @@ This section highlights the sets of questions the chatbot can and cannot answer.
 | How can I connect to the campus Wi-Fi?                 | What is a smart contract?                                      |
 | What are the available free software for a student?    | Can you write code for a basic Python script?                  |
 | Where are all the printers located?                    | What is the CGI phone number/email?                            |
-| What are the CoyoteLabs virtual computer lab?          | What class does Dr. Alzahrani teach?                           |
+| What are the CoyoteLabs virtual computer labs?         | What class does Dr. Alzahrani teach?                           |
 | Is Adobe Creative Cloud available as student software? | Who is Hironori Washizaki?                                     |
 | What is information security awareness?                | How can I make a payment for the tuition fee?                  |
-| How do I enable multi-factor authorization?            | What is the future impact of AI on software quality standards? |
+| How do I enable multi-factor authentication?           | What is the future impact of AI on software quality standards? |
 | What are Coyote OneCard benefits?                      | What is regression testing?                                    |
 | What if i lost my campus laptop charger?               | How much does parking cost for one semester?                   |
 
