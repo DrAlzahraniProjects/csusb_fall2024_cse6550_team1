@@ -206,17 +206,27 @@ def initialize_milvus(uri: str=MILVUS_URI):
         create_vector_store([])
         return
     if vector_store_check(uri):
+        spinner_placeholder = st.empty()
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
+
+        spinner_placeholder.markdown("Retrieving documents from website...")
         documents, existing_hashes = asyncio.run(_load_documents_from_web_and_db(collection))
+        spinner_placeholder.markdown(f"{len(documents)} documents loaded from the website")
+        time.sleep(0.3)
+        spinner_placeholder.markdown("Retrieving documents from website... Done")
 
         # Split the documents into chunks
+        spinner_placeholder.markdown("Splitting documents into chunks...")
+        time.sleep(0.3)
         docs = split_documents(documents=documents)
+        spinner_placeholder.markdown("Splitting documents into chunks... Done")
+        time.sleep(0.3)
 
         # Initialize sets to store common hashes and documents to insert
         common_hashes = set()
         documents_to_insert = []
-
         # Check if the documents from the website are already in the database
+        spinner_placeholder.markdown("Checking for existing documents...")
         for doc in docs:
             text = doc.page_content[:MAX_TEXT_LENGTH]
             hashed_text = hash_text(text)
@@ -232,16 +242,35 @@ def initialize_milvus(uri: str=MILVUS_URI):
         print("Existing Hashes", existing_hashes)
         print("Documents to Insert", documents_to_insert)
         if existing_hashes:
+            number_of_existing_hashes = len(existing_hashes)
+            spinner_placeholder.markdown(f"Deleting {number_of_existing_hashes} outdated documents...")
+            time.sleep(0.3)
+            count = 1
             for hash_to_delete in existing_hashes:
-                # collection.query(expr=f"hash_id == {hash_to_delete}", delete=True)
+                spinner_placeholder.markdown(f"Deleting {count}/{number_of_existing_hashes} outdated documents...")
                 collection.delete(expr = f"hash_id == '{hash_to_delete}'")
+                count += 1
             print("Deleted outdated documents")
+            spinner_placeholder.markdown("Deleted outdated documents")
+            time.sleep(0.3)
+        spinner_placeholder.empty()
         create_vector_store(documents_to_insert)
     else:
+        spinner_placeholder = st.empty()
+
+        spinner_placeholder.markdown("Retrieving documents from website...")
         documents = load_documents_from_web()
+        spinner_placeholder.markdown(f"{len(documents)} documents loaded from the website")
+        time.sleep(0.3)
+        spinner_placeholder.markdown("Retrieving documents from website... Done")
         print("Documents Loaded")
+
         # Split the documents into chunks
+        spinner_placeholder.markdown("Splitting documents into chunks...")
         docs = split_documents(documents=documents)
+        spinner_placeholder.markdown("Splitting documents into chunks... Done")
+        time.sleep(0.3)
+        spinner_placeholder.empty()
         create_vector_store(docs)
 
 
@@ -380,9 +409,16 @@ def create_vector_store(docs):
         docs (list): The list of documents to insert into the vector store
     """
     if docs == []:
+        spinner_placeholder = st.empty()
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
+
+        spinner_placeholder.markdown("Loading the vector store...")
+        time.sleep(0.3)
         collection.load()
+        spinner_placeholder.markdown("Vectore store Initialization complete!")
+        spinner_placeholder.empty()
         return
+    spinner_placeholder = st.empty()
     # Create a new vector store and drop any existing one
     fields = [
         FieldSchema(name="hash_id", dtype=DataType.VARCHAR, max_length=32, is_primary=True),
@@ -400,9 +436,13 @@ def create_vector_store(docs):
     print("After Index")
 
     model = get_embedding_model()
-    count = 0
+    count = 1
+    number_of_docs = len(docs)
+    spinner_placeholder.markdown(f"Inserting {number_of_docs} new documents...")
+    time.sleep(0.3)
     for doc in docs:
         print(f"Inserting Document {count}", doc)
+        spinner_placeholder.markdown(f"Inserting {count}/{number_of_docs} new documents...")
         text = doc.page_content[:MAX_TEXT_LENGTH]
         hash_id = hash_text(text)
         embedding = model.encode(text)
@@ -411,8 +451,12 @@ def create_vector_store(docs):
         collection.insert([[hash_id], [embedding], [text], [title], [source]])
         count += 1
     
+    spinner_placeholder.markdown("Insertion compeleted. Loading the vector store...")
+    time.sleep(0.3)
     collection.load()
+    spinner_placeholder.markdown("Vectore store Initialization complete!")
     print("Vector Store Created")
+    spinner_placeholder.empty()
 
 
 if __name__ == '__main__':
