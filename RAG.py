@@ -76,7 +76,7 @@ def query_rag(query):
         # Check if the query is a filtered query and it is the first or second message
         if is_filtered_query(query):
             if CORPUS_SOURCE == 'https://www.csusb.edu/its':
-                return "Hi there! I am an IT Support Chatbot. I can help you with your IT related queries. How can I assist you today?", "Unknown"
+                return "Hi there! I am an ITS Support Chatbot. I can help you with your ITS related queries. How can I assist you today?", "Unknown"
             return f"Hi there! I'm an AI assistant powered by {CORPUS_SOURCE}. I'm here to help with any questions you might have. How can I assist you today?", "Unknown"
         
         # Define the model
