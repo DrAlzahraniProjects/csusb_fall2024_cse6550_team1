@@ -3,11 +3,11 @@ from uuid import uuid4
 # import time
 import os
 import subprocess
-from RAG import initialize_milvus, query_rag
+from backend.RAG import initialize_milvus, query_rag
 from collections import defaultdict
 import pandas as pd
-from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
-from ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
+from metrics.chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
+from backend.ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
 
 
 def initialize_vector_store():
