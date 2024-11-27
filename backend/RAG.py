@@ -1,4 +1,4 @@
-CORPUS_SOURCE = 'https://www.csusb.edu/its'
+CORPUS_SOURCE = 'https://www.csusb.edu/its/support/it-knowledge-base/detail?id=946599d07c291482b3fdb14e6bba31788c9a43ff8b'
 
 import hashlib
 import os
@@ -26,8 +26,7 @@ from backend.retriever import ScoreThresholdRetriever
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
-os.environ['GROQ_API_KEY'] = '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'
-GROQ_API_KEY = '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'
+os.environ['GROQ_API_KEY'] = 'INSERT GROQ API'
 MILVUS_URI = "/app/milvus/milvus_vector.db"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 MAX_TEXT_LENGTH = 5000
@@ -293,9 +292,12 @@ def load_documents_from_web():
         )
     raw_documents = loader.load()
 
+    print(len(raw_documents))
+
     # Ensure documents are cleaned
     cleaned_documents = []
     for doc in raw_documents:
+        print(doc.page_content)
         cleaned_text = clean_text_from_html(doc.page_content)
         cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
 
