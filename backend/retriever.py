@@ -15,7 +15,7 @@ class ScoreThresholdRetriever(BaseRetriever):
 
     """
 
-    score_threshold: float = Field(default=0.1, description="Minimum score threshold for a document to be considered relevant")
+    score_threshold: float = Field(default=0.7, description="Minimum score threshold for a document to be considered relevant")
     k: int = Field(default=5, description="Number of documents to retrieve")
 
     def _get_relevant_documents(self) -> List[Any]:
@@ -33,9 +33,15 @@ class ScoreThresholdRetriever(BaseRetriever):
             List[Document]: The list of relevant documents
         """
         try:
+            # search_params = {
+            #     "metric_type": "L2",
+            #     "params": {"nprobe": 10}
+            # }
             search_params = {
-                "metric_type": "L2",
-                "params": {"nprobe": 10}
+                "metric_type": "IP",
+                "params": {
+                    "ef": 200
+                }
             }
             result = collection.search(
                 data = [query_embedding],
@@ -71,7 +77,7 @@ class ScoreThresholdRetriever(BaseRetriever):
             if source is None:
                 source = "Unknown"
             # Check if the document is relevant and has a higher score than the current highest score
-            if normalized_score >= self.score_threshold:
+            if normalized_score < self.score_threshold:
                 res = Document(
                     page_content = page_content,
                     metadata = {
@@ -83,7 +89,7 @@ class ScoreThresholdRetriever(BaseRetriever):
                 relevant_documents.append(res)
 
         # Sort the relevant documents by score in descending order
-        relevant_documents.sort(key=lambda x: x.metadata["score"], reverse=True)
+        relevant_documents.sort(key=lambda x: x.metadata["score"])
 
         return relevant_documents
     

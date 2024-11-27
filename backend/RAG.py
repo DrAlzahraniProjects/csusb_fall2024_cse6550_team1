@@ -88,7 +88,7 @@ def query_rag(query):
         print("Before embedding model")
         model = get_embedding_model()
         print("After embedding model")
-        retriever = ScoreThresholdRetriever(score_threshold=0.2, k=3)
+        retriever = ScoreThresholdRetriever(score_threshold=0.7, k=3)
         document_chain = create_stuff_documents_chain(chat_model, prompt)
         query_embedding = np.array(model.encode(query), dtype=np.float32).tolist()
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
@@ -133,14 +133,30 @@ def create_prompt():
         PromptTemplate: The prompt template for the RAG model
     """
     # Define the prompt template
+    # PROMPT_TEMPLATE = """
+    # You are an AI assistant that provides answers strictly based on the provided context. Adhere to these guidelines:
+    #  - Only answer questions based on the content within the <context> tags.
+    #  - If the <context> does not contain information related to the question, respond only with: "I don't have enough information to answer this question."
+    #  - For unclear questions or questions that lack specific context, request clarification from the user.
+    #  - Provide specific, concise answers. Where relevant information includes statistics or numbers, include them in the response.
+    #  - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
+    #  - If information is missing, respond only with: "I don't have enough information to answer this question."
+    # """
+    # PROMPT_TEMPLATE = """
+    # You are an AI assistant that strictly provides answers based only on the provided context. Follow these rules without exception:
+    # 1. Only answer questions based on the information contained within the <context> tags.
+    # 2. If the <context> does not have information related to the question, respond only with: "The context does not contain enough information to answer this question."
+    # 3. Do not attempt to infer, guess, or provide any information outside the <context>. If the question is unrelated to the <context>, explicitly state that you cannot provide an answer.
+    # 4. For unclear or incomplete questions, respond with: "Could you please clarify your question?"
+    # 5. Keep all responses concise and relevant. Do not elaborate beyond the context.
+    # """
     PROMPT_TEMPLATE = """
-    You are an AI assistant that provides answers strictly based on the provided context. Adhere to these guidelines:
-     - Only answer questions based on the content within the <context> tags.
-     - If the <context> does not contain information related to the question, respond only with: "I don't have enough information to answer this question."
-     - For unclear questions or questions that lack specific context, request clarification from the user.
-     - Provide specific, concise ansewrs. Where relevant information includes statistics or numbers, include them in the response.
-     - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
-     - If information is missing, respond only with: "I don't have enough information to answer this question."
+    You are an AI assistant that provides answers strictly based on the provided context. Follow these rules without exception:
+    1. Answer only questions that have directly relevant information within the <context> tags.
+    2. If the <context> does not contain relevant information, respond only with: "The context does not contain enough information to answer this question."
+    3. Do not elaborate, provide external suggestions, or reference any information outside the <context>.
+    4. For unclear or incomplete questions, respond only with: "Could you please clarify your question?"
+    5. Keep responses short and strictly factual based on the <context>.
     """
 
     prompt = ChatPromptTemplate.from_messages([
@@ -188,7 +204,7 @@ async def _load_documents_from_web_and_db(collection: Collection):
 
         model_future = loop.run_in_executor(pool, get_embedding_model)
 
-        documents, existing_hashes, embedding_model = await asyncio.gather(documents_future, hashes_future, model_future)
+        documents, existing_hashes, _ = await asyncio.gather(documents_future, hashes_future, model_future)
 
         return documents, existing_hashes
 
@@ -432,7 +448,12 @@ def create_vector_store(docs):
     collection = Collection(name=re.sub(r'\W+', '', CORPUS_SOURCE), schema=schema)
     print("After Collection")
     print("Before Index")
-    collection.create_index(field_name="embedding", index_params={"index_type": "FLAT", "metric_type": "L2"})
+    index_params = {
+            "index_type": "HNSW",
+        "metric_type": "IP",
+        "params": {"M": 16, "efConstruction": 200}
+    }
+    collection.create_index(field_name="embedding", index_params=index_params)
     print("After Index")
 
     model = get_embedding_model()
