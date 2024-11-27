@@ -21,6 +21,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
 from httpx import HTTPStatusError
 from backend.retriever import ScoreThresholdRetriever
+from playwright.sync_api import sync_playwright
 
 
 load_dotenv()
@@ -88,7 +89,7 @@ def query_rag(query):
         print("Before embedding model")
         model = get_embedding_model()
         print("After embedding model")
-        retriever = ScoreThresholdRetriever(score_threshold=0.2, k=3)
+        retriever = ScoreThresholdRetriever(score_threshold=0.18, k=3)
         document_chain = create_stuff_documents_chain(chat_model, prompt)
         query_embedding = np.array(model.encode(query), dtype=np.float32).tolist()
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
@@ -284,18 +285,67 @@ def load_documents_from_web():
     loader = RecursiveUrlLoader(
         url=CORPUS_SOURCE,
         prevent_outside=True,
-        base_url=CORPUS_SOURCE
+        base_url=CORPUS_SOURCE,
+        max_depth=15,
         )
+    print(f"Starting to load documents from: {CORPUS_SOURCE}")  # Log the base URL being loaded
+    
     raw_documents = loader.load()
 
     # Ensure documents are cleaned
     cleaned_documents = []
     for doc in raw_documents:
-        cleaned_text = clean_text_from_html(doc.page_content)
-        cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
+        source_url = doc.metadata.get("source", "Unknown Source")  # Get the source URL
+        print(f"Loaded URL: {source_url}")  # Log each loaded URL
 
+        try:
+            # Render dynamic content if necessary
+            rendered_content = render_dynamic_page(source_url)
+            cleaned_text = clean_text_from_html(rendered_content)
+            cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
+        except Exception as e:
+                print(f"Error loading dynamic content for {source_url}: {e}")
+        
+    print(f"Finished loading {len(cleaned_documents)} documents.")  # Log the total number of documents
     return cleaned_documents
 
+def render_dynamic_page(url):
+    """
+    Render a dynamic webpage using Playwright and return its HTML content.
+    
+    Args:
+        url (str): The URL to load.
+        
+    Returns:
+        str: The HTML content of the page.
+    """
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(url, wait_until="networkidle")  # Wait for the page to fully load
+        html_content = page.content()  # Get the rendered HTML
+        browser.close()
+        return html_content
+
+def extract_links_from_html(html, base_url):
+    """
+    Extract and normalize all links from a webpage.
+
+    Args:
+        html (str): HTML content of the page.
+        base_url (str): Base URL for resolving relative links.
+
+    Returns:
+        list: A list of absolute URLs found on the page.
+    """
+    from urllib.parse import urljoin
+    soup = BeautifulSoup(html, "html.parser")
+    links = set()
+    for a_tag in soup.find_all("a", href=True):
+        href = a_tag["href"]
+        absolute_url = urljoin(base_url, href)
+        links.add(absolute_url)
+    return list(links)
 def clean_text_from_html(html_content):
     """
     Clean the text from the HTML content

@@ -53,8 +53,9 @@ COPY requirements.txt /app/requirements.txt
 RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 
 # Install Python packages not on Mamba DB
-RUN pip install -qU langchain_milvus
-
+RUN pip install -qU langchain_milvus playwright
+RUN playwright install
+RUN playwright install-deps
 # Copy the current directory contents into the container at /app
 COPY . /app
 
