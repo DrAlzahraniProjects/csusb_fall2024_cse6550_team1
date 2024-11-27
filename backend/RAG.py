@@ -8,12 +8,13 @@ import re
 import numpy as np
 import hashlib
 import asyncio
+from langchain_groq.chat_models import ChatGroq
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_mistralai.chat_models import ChatMistralAI
+#from langchain_mistralai.chat_models import ChatMistralAI
 from langchain_community.document_loaders import RecursiveUrlLoader
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
@@ -25,6 +26,8 @@ from backend.retriever import ScoreThresholdRetriever
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
+os.environ['GROQ_API_KEY'] = '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'
+GROQ_API_KEY = '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'
 MILVUS_URI = "/app/milvus/milvus_vector.db"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 MAX_TEXT_LENGTH = 5000
@@ -80,7 +83,8 @@ def query_rag(query):
             return f"Hi there! I'm an AI assistant powered by {CORPUS_SOURCE}. I'm here to help with any questions you might have. How can I assist you today?", "Unknown"
         
         # Define the model
-        chat_model = ChatMistralAI(model='open-mistral-7b', temperature = 0.2)
+        #chat_model = ChatMistralAI(model='open-mistral-7b', temperature = 0.2)
+        chat_model = ChatGroq(model='llama-3.1-70b-versatile', temperature = 0.2)
         print("Model Loaded")
 
         # Create the prompt and components for the RAG model
@@ -88,7 +92,7 @@ def query_rag(query):
         print("Before embedding model")
         model = get_embedding_model()
         print("After embedding model")
-        retriever = ScoreThresholdRetriever(score_threshold=0.2, k=3)
+        retriever = ScoreThresholdRetriever(score_threshold=0.1, k=3)
         document_chain = create_stuff_documents_chain(chat_model, prompt)
         query_embedding = np.array(model.encode(query), dtype=np.float32).tolist()
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
@@ -284,7 +288,8 @@ def load_documents_from_web():
     loader = RecursiveUrlLoader(
         url=CORPUS_SOURCE,
         prevent_outside=True,
-        base_url=CORPUS_SOURCE
+        base_url=CORPUS_SOURCE,
+        max_depth=4
         )
     raw_documents = loader.load()
 
