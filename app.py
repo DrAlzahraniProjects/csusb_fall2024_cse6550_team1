@@ -1,21 +1,49 @@
 import streamlit as st
 from uuid import uuid4
-import time
+# import time
 import os
 import subprocess
-from RAG import initialize_milvus, query_rag
+from backend.RAG import initialize_milvus, query_rag
 from collections import defaultdict
 import pandas as pd
-from chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
-from ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
+from metrics.chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
+from backend.ddos_protection import handle_rate_limiting  # Importing the rate-limiting function
+
 
 def initialize_vector_store():
-    if not hasattr(st.session_state, "vector_store_initialized"):
+    """
+    Initialize the vector store for storing the embeddings of the questions.
+    """
+    if not hasattr(os.environ, "vector_store_initialized"):
         initialize_milvus()
-        st.session_state.vector_store_initialized = True
+        os.environ.vector_store_initialized = True
+
+def remove_special_characters(input_string):
+    """
+    Remove special characters from a string and convert it to lowercase.
+
+    Args:
+        input_string (str): The input string.
+
+    Returns:
+        str: The string with special characters removed and converted to lowercase.
+    """
+    special_characters = "?!@#$%^&*()-_=+[]{}\\|;:'\",<>/`~"
+    return input_string.translate(str.maketrans("", "", special_characters)).lower().strip()
+
+
 class StreamlitApp:
+    """
+    Streamlit App class to handle the chatbot app.
+    """
 
     def __init__(self, session_state=st.session_state):
+        """
+        Initialize the Streamlit App.
+
+        Args:
+            session_state (dict): The session state dictionary.
+        """
         self.db_client = DatabaseClient()
         if "app_initialized" not in st.session_state:
             st.session_state.app_initialized = False
@@ -36,33 +64,33 @@ class StreamlitApp:
         self.answerable_questions = {
             "How can I contact ITS?",
             "How can I connect to the campus Wi-Fi?",
-            "Who are the Co-Chairs for the 2024/2025 Committee?",
+            "What are the available free software for a student?",
             "Where are all the printers located?",
             "What are the CoyoteLabs virtual computer labs?",
             "Is Adobe Creative Cloud available as student software?",
-            "Does CSUSB have accessible technology?",
+            "What is information security awareness?",
             "How do I enable multi-factor authentication?",
             "What are Coyote OneCard benefits?",
-            "Why can't I get access for wireless prints through my phone?",
+            "What if i lost my campus laptop charger?",
         }
-        self.answerable_questions = {q.lower() for q in self.answerable_questions}
+        self.answerable_questions = {remove_special_characters(q) for q in self.answerable_questions}
         self.unanswerable_questions = {
-            "How do I connect to Starbucks Wi-Fi?",
+            "What are the campus gym timings?",
             "What is a smart contract?",
             "Can you write code for a basic Python script?",
-            "Who is the dean of CSUSB?",
+            "What is the CGI phone number/email?",
             "What class does Dr. Alzahrani teach?",
             "Who is Hironori Washizaki?",
-            "When was CSUSB built?",
+            "How can I make a payment for the tuition fee?",
             "What is the future impact of AI on software quality standards?",
             "What is regression testing?",
-            "Can a student apply for a part-time job in IT support? If so, what is the process?",
+            "How much does parking cost for one semester?",
         }
-        self.unanswerable_questions = {q.lower() for q in self.unanswerable_questions}
+        self.unanswerable_questions = {remove_special_characters(q) for q in self.unanswerable_questions}
 
-    
 
-    def load_css(self, file_name):
+    @staticmethod
+    def load_css(file_name):
         """
         Load a CSS file to style the app.
 
@@ -75,7 +103,8 @@ class StreamlitApp:
         except FileNotFoundError:
             st.error(f"css file '{file_name}' not found.")
 
-    def color_cells(self, val):
+    @staticmethod
+    def color_cells(val):
         """
         Apply background and text color based on cell content.
 
@@ -87,19 +116,18 @@ class StreamlitApp:
         """
         if "TP" in val and val[0] != '0' or "TN" in val and val[0] != '0':
             return {
-                "background-color": "#90f7aa",  # Light green for correct predictions
-                "color": "#013b0f"  # Dark green text
+                "background-color": "#transparent",  # Light green for correct predictions
+                "color": "#767676"  # Dark green text
             }
         elif "FP" in val and val[0] != '0' or "FN" in val and val[0] != '0':
             return {
-                "background-color": "#fbc5ca",  # Light red for incorrect predictions
-                "color": "#4b0007"  # Dark red text
+                "background-color": "#transparent",  # Light red for incorrect predictions
+                "color": "#767676"  # Dark red text
             }
         return {
             "background-color": "transparent",  # Default white background
-            "color": "#000000"  # Default black text
+            "color": "#767676"  # Default black text
         }
-
 
     def display_performance_metrics(self):
         """
@@ -114,8 +142,8 @@ class StreamlitApp:
             unsafe_allow_html=True
         )
         important_metrics = [
-            ("Sensitivity", "sensitivity"),
-            ("Specificity", "specificity"),
+            ("Sensitivity (true positive rate)", "sensitivity"),
+            ("Specificity (true negative rate)", "specificity"),
         ]
         result = self.db_client.get_performance_metrics()
         imp_container = st.sidebar.empty()
@@ -158,29 +186,29 @@ class StreamlitApp:
             self.db_client.reset_performance_metrics()
             # st.rerun()
 
-
     def handle_feedback(self, assistant_message_id):
         """
         Handle feedback for a message.
 
         Args:
-            id (str): The unique ID of the message
+            assistant_message_id (str): The unique ID of the message
         """
         previous_feedback = st.session_state.messages[assistant_message_id].get("feedback", None)
         feedback = st.session_state.get(f"feedback_{assistant_message_id}", None)
         user_message_id = assistant_message_id.replace("assistant_message", "user_message", 1)
         question = st.session_state.messages[user_message_id]["content"]
+        plain_question = remove_special_characters(question)
 
-        if question.lower().strip() in self.answerable_questions:
+        if plain_question in self.answerable_questions:
             if feedback == 1:
-                if previous_feedback == None:
+                if previous_feedback is None:
                     self.db_client.increment_performance_metric("true_positive")
                 elif previous_feedback == "dislike":
                     self.db_client.increment_performance_metric("false_negative", -1)
                     self.db_client.increment_performance_metric("true_positive")
                 st.session_state.messages[assistant_message_id]["feedback"] = "like"
             elif feedback == 0:
-                if previous_feedback == None:
+                if previous_feedback is None:
                     self.db_client.increment_performance_metric("false_negative")
                 elif previous_feedback == "like":
                     self.db_client.increment_performance_metric("true_positive", -1)
@@ -192,16 +220,16 @@ class StreamlitApp:
                 elif previous_feedback == "dislike":
                     self.db_client.increment_performance_metric("false_negative", -1)
                 st.session_state.messages[assistant_message_id]["feedback"] = None
-        elif question.lower().strip() in self.unanswerable_questions:
+        elif plain_question in self.unanswerable_questions:
             if feedback == 1:
-                if previous_feedback == None:
+                if previous_feedback is None:
                     self.db_client.increment_performance_metric("true_negative")
                 elif previous_feedback == "dislike":
                     self.db_client.increment_performance_metric("false_positive", -1)
                     self.db_client.increment_performance_metric("true_negative")
                 st.session_state.messages[assistant_message_id]["feedback"] = "like"
             elif feedback == 0:
-                if previous_feedback == None:
+                if previous_feedback is None:
                     self.db_client.increment_performance_metric("false_positive")
                 elif previous_feedback == "like":
                     self.db_client.increment_performance_metric("true_negative", -1)
@@ -216,7 +244,6 @@ class StreamlitApp:
                 
         self.db_client.update_performance_metrics()
 
-
     def display_all_messages(self):
         for message_id, message in st.session_state.messages.items():
             if message["role"] == "assistant":
@@ -229,13 +256,14 @@ class StreamlitApp:
                 # Feedback Buttons
                 st.feedback(
                     "thumbs",
-                    key = f"feedback_{message_id}",
-                    on_change = self.handle_feedback(message_id),
+                    key=f"feedback_{message_id}",
+                    on_change=self.handle_feedback(message_id),
                 )
             else:
                 st.markdown(f"<div class='user-message'>{message['content']}</div>", unsafe_allow_html=True)
-    
-    def run_query(self, prompt=None, user_message_id=None, assistant_message_id=None):
+
+    @staticmethod
+    def run_query(prompt=None, user_message_id=None, assistant_message_id=None):
         """
         Run a query and generate a response.
 
@@ -253,7 +281,7 @@ class StreamlitApp:
         response_placeholder = st.empty()
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
-                answer, source = None, None
+                # answer, source = None, None
                 # if not st.session_state.get("QUERY_RUNNING", None):
                 if len(st.session_state.messages) > 1:
                     st.session_state["QUERY_RUNNING"] = user_message_id
@@ -287,8 +315,7 @@ class StreamlitApp:
         
         # displays the performance metrics in the sidebar   
         self.display_performance_metrics()
-        
-        
+
         # Handle user input
         if prompt := st.chat_input("Ask ITS support chatbot"):
             is_server_free = handle_rate_limiting()

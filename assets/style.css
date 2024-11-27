@@ -95,18 +95,18 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
     }
 
     .important-metrics {
-        color: #ffffff; /* White text */
-        border: 1px solid #1fa1e566; /* Subtle blue for emphasis */
-        background-color: #72b4d766;
+        color: #c8c8c8; /* Muted light gray for a softer emphasis */
+        border: 1px solid #383c47; /* Subtle dark gray border with a hint of blue */
+        background-color: #2e323d;
         border-radius: 10px;
         padding: 10px;
         margin-bottom: 10px;
     }
 
     .normal-metrics {
-        color: #ffffff; /* White text */
-        border: 1px solid #aaaaaa; /* Softer gray border for neutral look */
+        border: 1px solid #454d57;
         background-color: #262730;
+        color: #c8c8c8;
         border-radius: 10px;
         padding: 10px;
         margin-bottom: 10px;
@@ -115,7 +115,6 @@ div[data-testid="stVerticalBlock"] div:has(div.fixed-header) {
 
 table {
     border-spacing: 0;
-    border-radius: 15px; /* Add rounded corners */
     overflow: hidden; /* Ensure rounded corners appear */
     width: 100%;
 }
