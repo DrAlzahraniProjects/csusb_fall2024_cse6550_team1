@@ -1,4 +1,4 @@
-CORPUS_SOURCE = 'https://www.csusb.edu/its/support/it-knowledge-base/detail?id=946599d07c291482b3fdb14e6bba31788c9a43ff8b'
+CORPUS_SOURCE = 'https://www.csusb.edu/its'
 
 import hashlib
 import os
@@ -15,7 +15,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.schema import Document
 from langchain_core.prompts import ChatPromptTemplate
 #from langchain_mistralai.chat_models import ChatMistralAI
-from langchain_community.document_loaders import RecursiveUrlLoader
+from langchain_community.document_loaders import RecursiveUrlLoader, WebBaseLoader
 from bs4 import BeautifulSoup
 from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -23,6 +23,11 @@ from pymilvus import connections, utility, Collection, CollectionSchema, FieldSc
 from httpx import HTTPStatusError
 from backend.retriever import ScoreThresholdRetriever
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
@@ -288,18 +293,35 @@ def load_documents_from_web():
         url=CORPUS_SOURCE,
         prevent_outside=True,
         base_url=CORPUS_SOURCE,
-        max_depth=4
+        max_depth=4,
+        use_async=True
         )
     raw_documents = loader.load()
 
-    print(len(raw_documents))
+    print('SELENIUM')
+    with open ('links.txt', 'r') as f:
+        for line in f.readlines():
+            print(line.strip())
+            service = Service()
+            options = webdriver.ChromeOptions()
+            options.add_argument('--no-sandbox')
+            options.add_argument('--headless')
+            driver = webdriver.Chrome(service=service, options=options)
+            driver.get(line.strip())
+            WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'ng-scope')))
+            raw_documents.append(driver.page_source)
+            driver.quit()
+    print('SELENIUM END')
 
     # Ensure documents are cleaned
     cleaned_documents = []
     for doc in raw_documents:
-        print(doc.page_content)
-        cleaned_text = clean_text_from_html(doc.page_content)
-        cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
+        try:
+            cleaned_text = clean_text_from_html(doc.page_content)
+            cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
+        except AttributeError:
+            cleaned_text = clean_text_from_html(doc.page_source)
+            cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
 
     return cleaned_documents
 
