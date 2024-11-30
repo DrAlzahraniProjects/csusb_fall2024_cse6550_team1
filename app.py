@@ -3,7 +3,7 @@ from uuid import uuid4
 # import time
 import os
 import subprocess
-from backend.RAG import initialize_milvus, query_rag
+from backend.RAG import initialize_milvus, query_rag, get_corpus
 from collections import defaultdict
 import pandas as pd
 from metrics.chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
@@ -297,7 +297,8 @@ class StreamlitApp:
                 if assistant_message_id is None:
                     assistant_message_id = user_message_id.replace("user_message", "assistant_message", 1)
                 if "I don't have enough information to answer this question." in answer:
-                    st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": "I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. I can only answer questions based on this information. Please ask another question.", "source": 'Unknown'}
+                    CORPUS_SOURCE = get_corpus()
+                    st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. I can only answer questions based on this information. Please ask another question.", "source": 'Unknown'}
                     if "QUERY_RUNNING" in st.session_state:
                         del st.session_state["QUERY_RUNNING"]
                 else:

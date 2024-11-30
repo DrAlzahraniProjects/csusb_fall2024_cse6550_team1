@@ -484,6 +484,9 @@ def create_vector_store(docs):
     print("Vector Store Created")
     spinner_placeholder.empty()
 
+def get_corpus():
+    return CORPUS_SOURCE
+
 
 if __name__ == '__main__':
     pass
