@@ -5,12 +5,10 @@ import os
 import streamlit as st
 import requests
 from collections import defaultdict
+import hashlib
 
 # Set the path for the JSON file to persist the rate-limiting data
 JSON_FILE_PATH = 'user_rate_limit_data.json'
-
-# Initialize random seed for randomness
-random.seed(1)
 
 # Function to load data from JSON file into session state
 def load_data():
@@ -33,16 +31,19 @@ def get_remote_ip():
     Function to get the remote IP address of the user from the request headers
     or an external service like ipify if behind a proxy.
     """
-    if 'X-Real-IP' in st.query_params:
-        user_ip = st.query_params['X-Real-IP'][0]
-    elif 'X-Forwarded-For' in st.query_params:
-        user_ip = st.query_params['X-Forwarded-For'][0].split(',')[0]
-    else:
-        # If no IP found in headers, use an external service (ipify)
-        response = requests.get('https://api.ipify.org')
-        user_ip = response.text
+    try:
+        if 'X-Real-IP' in st.query_params:
+            user_ip = st.query_params['X-Real-IP'][0]
+        elif 'X-Forwarded-For' in st.query_params:
+            user_ip = st.query_params['X-Forwarded-For'][0].split(',')[0]
+        else:
+            # If no IP found in headers, use an external service (ipify)
+            response = requests.get('https://api.ipify.org')
+            user_ip = response.text
+    except requests.exceptions.RequestException:
+        user_ip = 'Unavailable'
 
-    return user_ip
+    return  hashlib.sha256(user_ip.encode()).hexdigest()
 
 # Rate limit checker function
 def is_rate_limited(user_ip):
@@ -87,21 +88,21 @@ def handle_rate_limiting():
     Returns:
     str or bool: The user IP if the request is allowed, False if the request is rate-limited.
     """
-    user_ip = get_remote_ip()
+    hashed_ip = get_remote_ip()
     load_data()
 
     # Check if the user is rate-limited
-    if is_rate_limited(user_ip):
+    if is_rate_limited(hashed_ip):
         return False
 
     # If not rate-limited, allow the request and store the timestamp
     current_time = time.time()
-    st.session_state.user_requests[user_ip].append(current_time)
+    st.session_state.user_requests[hashed_ip].append(current_time)
 
     # Save updated data to the JSON file
     save_data_to_json()
 
-    return user_ip
+    return hashed_ip
 
 # Function to save the data to a JSON file
 def save_data_to_json():
@@ -112,6 +113,5 @@ def save_data_to_json():
         'user_requests': {user_ip: timestamps for user_ip, timestamps in st.session_state.user_requests.items()},
         'lockout_time': st.session_state.lockout_time
     }
-
     with open(JSON_FILE_PATH, 'w') as f:
         json.dump(data, f, indent=4)
