@@ -31,7 +31,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 load_dotenv()
 MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
-os.environ['GROQ_API_KEY'] = 'INSERT GROQ API'
+os.environ['GROQ_API_KEY'] = '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'
+GROQ_API_KEY = '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'
 MILVUS_URI = "/app/milvus/milvus_vector.db"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 MAX_TEXT_LENGTH = 5000
@@ -83,7 +84,7 @@ def query_rag(query):
         # Check if the query is a filtered query and it is the first or second message
         if is_filtered_query(query):
             if CORPUS_SOURCE == 'https://www.csusb.edu/its':
-                return "Hi there! I am an ITS Support Chatbot. I can help you with your ITS related queries. How can I assist you today?", "Unknown"
+                return f"Hi there! I am an ITS Support Chatbot {CORPUS_SOURCE}. I can help you with your ITS related queries. How can I assist you today?", "Unknown"
             return f"Hi there! I'm an AI assistant powered by {CORPUS_SOURCE}. I'm here to help with any questions you might have. How can I assist you today?", "Unknown"
         
         # Define the model
@@ -105,7 +106,7 @@ def query_rag(query):
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
-            return "I don't have enough information to answer this question.", "Unknown"
+            return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
 
         # Extract metadata from the most relevant document
         most_relevant_document = retrieved_documents[0]
@@ -297,7 +298,7 @@ def load_documents_from_web():
         use_async=True
         )
     raw_documents = loader.load()
-
+    """
     print('SELENIUM')
     with open ('links.txt', 'r') as f:
         for line in f.readlines():
@@ -309,19 +310,15 @@ def load_documents_from_web():
             driver = webdriver.Chrome(service=service, options=options)
             driver.get(line.strip())
             WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'ng-scope')))
-            raw_documents.append(driver.page_source)
+            raw_documents.append(Document(page_content=driver.page_source, metadata={'source':line, 'content_type':'text/html; charset=UTF-8', 'title':driver.title, 'language':'en'}))
             driver.quit()
     print('SELENIUM END')
-
+    """
     # Ensure documents are cleaned
     cleaned_documents = []
     for doc in raw_documents:
-        try:
-            cleaned_text = clean_text_from_html(doc.page_content)
-            cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
-        except AttributeError:
-            cleaned_text = clean_text_from_html(doc.page_source)
-            cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
+        cleaned_text = clean_text_from_html(doc.page_content)
+        cleaned_documents.append(Document(page_content=cleaned_text, metadata=doc.metadata))
 
     return cleaned_documents
 
