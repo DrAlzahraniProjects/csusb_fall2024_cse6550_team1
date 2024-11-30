@@ -316,31 +316,37 @@ class StreamlitApp:
         # displays the performance metrics in the sidebar   
         self.display_performance_metrics()
 
-        # Handle user input
-        if prompt := st.chat_input("Ask ITS support chatbot"):
-            is_server_free = handle_rate_limiting()
-            if not is_server_free:
-                st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
-                st.stop()  # Stop further processing of the app
-            # creating user_message_id and assistant_message_id with the same unique "id" because they are related
-            unique_id = str(uuid4())
-            user_message_id = f"user_message_{unique_id}"
-            assistant_message_id = f"assistant_message_{unique_id}"
-
-            # save the user message in the session state
-            st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}
-            st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
-            response = self.run_query(prompt=prompt, user_message_id=user_message_id, assistant_message_id=assistant_message_id)
-            if response:
-                st.rerun()
-            else:
-                st.stop()  # Stop further processing of the app
+        # Check if a query is currently running
+        if st.session_state.get("QUERY_RUNNING"):
+            st.chat_input("Please wait, a response is currently being generated. You cannot ask a new question yet.", disabled=True)
+        else:
+            # Handle user input
+            if prompt := st.chat_input("Ask ITS support chatbot"):
+                is_server_free = handle_rate_limiting()
+                if not is_server_free:
+                    st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
+                    st.stop()  # Stop further processing of the app
+                # creating user_message_id and assistant_message_id with the same unique "id" because they are related
+                unique_id = str(uuid4())
+                user_message_id = f"user_message_{unique_id}"
+                assistant_message_id = f"assistant_message_{unique_id}"
+    
+                # save the user message in the session state
+                st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}
+                st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
+                # Indicate that a query is running now
+                st.session_state["QUERY_RUNNING"] = user_message_id
+                response = self.run_query(prompt=prompt, user_message_id=user_message_id, assistant_message_id=assistant_message_id)
+                if response is not None or response: # If user ask question during query and gets an API error
+                    st.rerun()
+                else:
+                    st.stop()  # Stop further processing of the app
             
         # Handle the case where the query is still running but interrupted due to feedback buttons
         if st.session_state.get("QUERY_RUNNING", None):
             user_message_id = st.session_state.get("QUERY_RUNNING")
             response = self.run_query(user_message_id=user_message_id)
-            if response:
+            if response is not None or response: # If user gives feedback during query and gets an API error
                 st.rerun()
             else:
                 st.stop()  # Stop further processing of the app
