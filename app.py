@@ -54,7 +54,7 @@ class StreamlitApp:
                     st.session_state.current_user = None
                 if 'lockout_time' not in st.session_state:
                     st.session_state.lockout_time = defaultdict(lambda: 0)
-                if "messages" not in session_state:
+                if "messages" not in st.session_state:
                     self.db_client.create_performance_metrics_table()
                     self.db_client.insert_default_performance_metrics()
                     initialize_vector_store()
