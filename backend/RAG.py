@@ -58,13 +58,34 @@ def is_filtered_query(query):
         r"(hi|hello|hey|yo),? (who are you|what('?s| is) your name)\??", # Greeting + identity
         r"(hi|hello|hey|yo),? (what do you do|what can you do)\??", # Greeting + capability
         r"good (morning|afternoon|evening),? (who are you|what('?s| is) your role)\??", # Polite intros
-        r"(can you help me|what can you do for me)\??" # Informal assistance questions
+        r"(what can you do for me)\??" # Informal assistance questions
     ]
     normalized = query.strip().lower()
     for pattern in patterns:
         if re.search(pattern, normalized):
             return True
     return False
+
+def format_source(response, default_url="https://www.csusb.edu/its"):
+    """
+    Reformat the source in the response to the markdown format [title](source).
+    
+    Args:
+        response (str): The raw response from the LLM.
+    
+    Returns:
+        str: The cleaned response with correctly formatted source.
+    """
+    response = response.replace("\\n\\n", "\n\n")
+    pattern_with_url = r"Source:\s*(.*?)\s*\((https?://[^\)]+)\)"
+    pattern_without_url = r"Source:\s*(.+?)\s*$"
+
+    if re.search(pattern_with_url, response):
+        formatted_response = re.sub(pattern_with_url, r"Source: [\1](\2)", response)
+    elif re.search(pattern_without_url, response):
+        formatted_response = re.sub(pattern_without_url, fr"Source: [\1]({default_url})", response)
+    # formatted_response = re.sub(pattern_with_url, r"Source: [\1](\2)", response)
+    return formatted_response
 
 def query_rag(query):
     """
@@ -89,7 +110,7 @@ def query_rag(query):
         
         # Define the model
         #chat_model = ChatMistralAI(model='open-mistral-7b', temperature = 0.2)
-        chat_model = ChatGroq(model='llama-3.1-70b-versatile', temperature = 0.2)
+        chat_model = ChatGroq(model='llama-3.1-70b-versatile', temperature = 0)
         print("Model Loaded")
 
         # Create the prompt and components for the RAG model
@@ -97,7 +118,7 @@ def query_rag(query):
         print("Before embedding model")
         model = get_embedding_model()
         print("After embedding model")
-        retriever = ScoreThresholdRetriever(score_threshold=0.1, k=3)
+        retriever = ScoreThresholdRetriever(score_threshold=0.7, k=5)
         document_chain = create_stuff_documents_chain(chat_model, prompt)
         query_embedding = np.array(model.encode(query), dtype=np.float32).tolist()
         collection = Collection(re.sub(r'\W+', '', CORPUS_SOURCE))
@@ -122,11 +143,16 @@ def query_rag(query):
         })
 
         # Add the source to the response if available
-        if isinstance(source, str) and source != "Unknown":
-            response += f"\n\nSource: [{title}]({source})"
-            print("Response Generated")
+        # if isinstance(source, str) and source != "Unknown":
+        #     response += f"\n\nSource: [{title}]({source})"
+        if response.lower().strip() == "the context does not contain enough information to answer this question.":
+            return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
+        formatted_response = format_source(response, source)
+        print("Response Generated", formatted_response)
+        # print("Response Generated")
         
-        return response, source
+        
+        return formatted_response, source
             
     except HTTPStatusError as e:
         print(f"HTTPStatusError: {e}")
@@ -141,20 +167,23 @@ def create_prompt():
     Returns:
         PromptTemplate: The prompt template for the RAG model
     """
-    # Define the prompt template
     PROMPT_TEMPLATE = """
-    You are an AI assistant that provides answers strictly based on the provided context. Adhere to these guidelines:
-     - Only answer questions based on the content within the <context> tags.
-     - If the <context> does not contain information related to the question, respond only with: "I don't have enough information to answer this question."
-     - For unclear questions or questions that lack specific context, request clarification from the user.
-     - Provide specific, concise ansewrs. Where relevant information includes statistics or numbers, include them in the response.
-     - Avoid adding any information, assumption, or external knowledge. Answer accurately within the scope of the given context and do not guess.
-     - If information is missing, respond only with: "I don't have enough information to answer this question."
+    <|begin_of_text|>
+    <|start_header_id|>system<|end_header_id|>
+    You are an AI assistant that provides answers strictly based on the provided context. Follow these rules without exception:
+    1. Answer only questions with directly relevant information in the <context>.
+    2. If multiple pieces of context are provided, base your answer on the most relevant one.
+    3. Base your response solely on the most relevant context and ensure it reflects the content accurately.
+    4. If relevant, append: "\\n\\nSource: [title](source)", where "title" and "source" correspond to the most relevant context.
+    5. If the <context> does not contain relevant information, respond: "The context does not contain enough information to answer this question."
+    6. For unclear or incomplete questions, respond: "Could you please clarify your question?"
+    7. Do not use information outside the <context> or elaborate.
+    8. Keep responses concise and factual.
+    <|eom_id|>
     """
-
     prompt = ChatPromptTemplate.from_messages([
         ("system", PROMPT_TEMPLATE),
-        ("human", "<question>{input}</question>\n\n<context>{context}</context>"),
+        ("human", """<|start_header_id|>user<|end_header_id|><question>{input}</question><context>{context}</context><|eom_id|>"""),
     ])
     print("Prompt Created")
 
@@ -171,7 +200,7 @@ def get_existing_hashes_from_db(collection: Collection):
         set: The set of existing hashed values
     """
     existing_hashes = set()
-    query_results = collection.query(expr="hash_id != ''", output_fields=["hash_id"])
+    query_results = collection.query(expr="dynamically_generated == false", output_fields=["hash_id"])
 
     for results in query_results:
         existing_hashes.add(results["hash_id"])
@@ -197,7 +226,7 @@ async def _load_documents_from_web_and_db(collection: Collection):
 
         model_future = loop.run_in_executor(pool, get_embedding_model)
 
-        documents, existing_hashes, embedding_model = await asyncio.gather(documents_future, hashes_future, model_future)
+        documents, existing_hashes, _ = await asyncio.gather(documents_future, hashes_future, model_future)
 
         return documents, existing_hashes
 
@@ -294,26 +323,27 @@ def load_documents_from_web():
         url=CORPUS_SOURCE,
         prevent_outside=True,
         base_url=CORPUS_SOURCE,
-        max_depth=4,
+        max_depth=2,
         use_async=True
         )
     raw_documents = loader.load()
-    """
-    print('SELENIUM')
-    with open ('links.txt', 'r') as f:
-        for line in f.readlines():
-            print(line.strip())
-            service = Service()
-            options = webdriver.ChromeOptions()
-            options.add_argument('--no-sandbox')
-            options.add_argument('--headless')
-            driver = webdriver.Chrome(service=service, options=options)
-            driver.get(line.strip())
-            WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'ng-scope')))
-            raw_documents.append(Document(page_content=driver.page_source, metadata={'source':line, 'content_type':'text/html; charset=UTF-8', 'title':driver.title, 'language':'en'}))
-            driver.quit()
-    print('SELENIUM END')
-    """
+    # print('SELENIUM')
+    # spinner_placeholder = st.empty()
+    # with open ('backend/links.txt', 'r') as f:
+    #     for line in f.readlines():
+    #         print(line.strip())
+    #         spinner_placeholder.markdown(f"Loading {line.strip()}...")
+    #         service = Service()
+    #         options = webdriver.ChromeOptions()
+    #         options.add_argument('--no-sandbox')
+    #         options.add_argument('--headless')
+    #         driver = webdriver.Chrome(service=service, options=options)
+    #         driver.get(line.strip())
+    #         WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, 'ng-scope')))
+    #         raw_documents.append(Document(page_content=driver.page_source, metadata={'source':line, 'content_type':'text/html; charset=UTF-8', 'title':driver.title, 'language':'en', 'dynamically_generated':True}))
+    #         driver.quit()
+    # print('SELENIUM END')
+    # spinner_placeholder.empty()
     # Ensure documents are cleaned
     cleaned_documents = []
     for doc in raw_documents:
@@ -372,8 +402,8 @@ def split_documents(documents):
     """
     # Create a text splitter to split the documents into chunks
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,  # Split the text into chunks of 1000 characters
-        chunk_overlap=200,  # Overlap the chunks by 300 characters
+        chunk_size=1000,  # Split the text into chunks of 1000 characters
+        chunk_overlap=100,  # Overlap the chunks by 100 characters
         is_separator_regex=False,
     )
     # Split the documents into chunks
@@ -452,13 +482,19 @@ def create_vector_store(docs):
         FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=5000),
         FieldSchema(name="title", dtype=DataType.VARCHAR, max_length=200),
         FieldSchema(name="source", dtype=DataType.VARCHAR, max_length=200),
+        FieldSchema(name="dynamically_generated", dtype=DataType.BOOL)
     ]
     schema = CollectionSchema(fields, description="Collection Schema for the Vector Store")
     print("Before Collection")
     collection = Collection(name=re.sub(r'\W+', '', CORPUS_SOURCE), schema=schema)
     print("After Collection")
     print("Before Index")
-    collection.create_index(field_name="embedding", index_params={"index_type": "FLAT", "metric_type": "L2"})
+    index_params = {
+        "index_type": "HNSW",
+        "metric_type": "IP",
+        "params": {"M": 16, "efConstruction": 200}
+    }
+    collection.create_index(field_name="embedding", index_params=index_params)
     print("After Index")
 
     model = get_embedding_model()
@@ -466,18 +502,40 @@ def create_vector_store(docs):
     number_of_docs = len(docs)
     spinner_placeholder.markdown(f"Inserting {number_of_docs} new documents...")
     time.sleep(0.3)
+    # Initialize lists for batch insertion
+    hash_ids = []
+    embeddings = []
+    texts = []
+    titles = []
+    sources = []
+    dynamically_generated_flags = []
     for doc in docs:
         print(f"Inserting Document {count}", doc)
         spinner_placeholder.markdown(f"Inserting {count}/{number_of_docs} new documents...")
+
         text = doc.page_content[:MAX_TEXT_LENGTH]
         hash_id = hash_text(text)
         embedding = model.encode(text)
         title = doc.metadata.get("title", "Untitled")
         source = doc.metadata.get("source", "Unknown")
-        collection.insert([[hash_id], [embedding], [text], [title], [source]])
+        dynamically_generated = doc.metadata.get("dynamically_generated", False)
+
+        # Add the document to the batch insertion lists
+        hash_ids.append(hash_id)
+        embeddings.append(embedding)
+        texts.append(text)
+        titles.append(title)
+        sources.append(source)
+        dynamically_generated_flags.append(dynamically_generated)
+
+
         count += 1
-    
-    spinner_placeholder.markdown("Insertion compeleted. Loading the vector store...")
+    print("Inserting All Documents")
+    collection.insert([hash_ids, embeddings, texts, titles, sources, dynamically_generated_flags])
+    print("Insertion Completed")
+    spinner_placeholder.markdown(f"Inserting {number_of_docs} new documents... Done")
+    time.sleep(0.5)
+    spinner_placeholder.markdown("Loading the vector store...")
     time.sleep(0.3)
     collection.load()
     spinner_placeholder.markdown("Vectore store Initialization complete!")
