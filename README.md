@@ -64,16 +64,16 @@ Before you begin, ensure you have the following installed on your machine:
    *DO NOT RUN THIS COMMAND YET, THE API KEY IN STEP 5 MUST BE INCLUDED AT THE END OF THE COMMAND*
 
    ```bash
-   docker build -t team1_app:latest . --build-arg MISTRAL=
+   docker build -t team1_app:latest . --build-arg GROQ=
    ```
 
 7. **Include the API key**
 
-   - Go to [Team1 QA](https://csusb.instructure.com/courses/43192/discussion_topics/419701) and copy the MISTRAL API key
+   - Go to [Team1 QA](https://csusb.instructure.com/courses/43192/discussion_topics/419701) and copy the GROQ API key
    - Paste the API key at the end of the previous instruction
    - Your command should look like this:
    ```bash
-   docker build -t team1_app:latest . --build-arg MISTRAL=APIKEYHERE
+   docker build -t team1_app:latest . --build-arg GROQ=APIKEYHERE
    ```
    - Run the command
 

@@ -51,7 +51,6 @@ class ScoreThresholdRetriever(BaseRetriever):
                 output_fields = ["title", "text" ,"source"]
             )
             docs_and_scores = result[0]
-            # docs_and_scores = self.vector_store.similarity_search_with_score(query, k=self.k)
         except Exception:
             return []
 
@@ -64,9 +63,8 @@ class ScoreThresholdRetriever(BaseRetriever):
 
         for doc in docs_and_scores:
             score = doc.distance
-            normalized_score = self._normalize_score(score)
-            print("Doc: ", doc)
-            print("Normalized score: ", normalized_score)
+            # normalized_score = self._normalize_score(score)
+            # print("Normalized score: ", normalized_score)
             page_content = doc.entity.get("text")
             title = doc.entity.get("title")
             source = doc.entity.get("source")
@@ -76,17 +74,18 @@ class ScoreThresholdRetriever(BaseRetriever):
                 title = "Untitled"
             if source is None:
                 source = "Unknown"
-            # Check if the document is relevant and has a higher score than the current highest score
-            if normalized_score < self.score_threshold:
-                res = Document(
-                    page_content = page_content,
-                    metadata = {
-                        'score': normalized_score,
-                        'title': title,
-                        'source': source
-                    }
-                )
-                relevant_documents.append(res)
+            page_content =f" (title: {title})" + f" (source: {source})" + page_content + "\n"
+            # if normalized_score < self.score_threshold:
+            res = Document(
+                page_content = page_content,
+                metadata = {
+                    'score': score,
+                    'title': title,
+                    'source': source
+                }
+            )
+            print("Doc: ", doc)
+            relevant_documents.append(res)
 
         # Sort the relevant documents by score in descending order
         relevant_documents.sort(key=lambda x: x.metadata["score"])

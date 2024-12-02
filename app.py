@@ -3,7 +3,7 @@ from uuid import uuid4
 # import time
 import os
 import subprocess
-from backend.RAG import initialize_milvus, query_rag
+from backend.RAG import initialize_milvus, query_rag, get_corpus
 from collections import defaultdict
 import pandas as pd
 from metrics.chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
@@ -278,6 +278,9 @@ class StreamlitApp:
             user_message_id = st.session_state.get("QUERY_RUNNING")
         if prompt is None:
             prompt = st.session_state.messages[user_message_id]["content"]
+        if " ITS " in prompt or " ITS?" in prompt:
+            prompt = prompt.replace(" ITS ", " Information Technology Services (Technology Support Center) ")
+        print(prompt)
         response_placeholder = st.empty()
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
@@ -293,9 +296,15 @@ class StreamlitApp:
             else:
                 if assistant_message_id is None:
                     assistant_message_id = user_message_id.replace("user_message", "assistant_message", 1)
-                st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
-                if "QUERY_RUNNING" in st.session_state:
-                    del st.session_state["QUERY_RUNNING"]
+                if "I don't have enough information to answer this question." in answer:
+                    CORPUS_SOURCE = get_corpus()
+                    st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. I can only answer questions based on this information. Please ask another question.", "source": 'Unknown'}
+                    if "QUERY_RUNNING" in st.session_state:
+                        del st.session_state["QUERY_RUNNING"]
+                else:
+                    st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
+                    if "QUERY_RUNNING" in st.session_state:
+                        del st.session_state["QUERY_RUNNING"]
         return True
     
     def main(self):
