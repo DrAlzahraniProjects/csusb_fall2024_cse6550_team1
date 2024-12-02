@@ -325,7 +325,9 @@ def load_documents_from_web():
         prevent_outside=True,
         base_url=CORPUS_SOURCE,
         max_depth=2,
-        use_async=True
+        use_async=True,
+        exclude_dirs=['https://www.csusb.edu/its/support/it-knowledge-base',
+                      'https://www.csusb.edu/its/support/knowledge-base']
         )
     raw_documents = loader.load()
     # print('SELENIUM')
