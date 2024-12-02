@@ -368,7 +368,8 @@ def clean_text_from_html(html_content):
     for script_or_style in soup(['script', 'style', 'header', 'footer', 'nav']):
         script_or_style.decompose()
 
-    main_content = soup.find('main')
+    main_content = soup.find('div', {'class': 'page-main-content'})
+    #main_content = soup.find('main')
     if main_content:
         content = main_content.get_text(separator='\n')
     else:
