@@ -11,7 +11,7 @@ sentence-transformers
 faiss-cpu
 mistralai
 pymilvus
-pydantic==2.5.2
 yake
 pandas
 numpy
+requests

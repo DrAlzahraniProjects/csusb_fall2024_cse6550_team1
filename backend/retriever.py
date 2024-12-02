@@ -15,7 +15,7 @@ class ScoreThresholdRetriever(BaseRetriever):
 
     """
 
-    score_threshold: float = Field(default=0.1, description="Minimum score threshold for a document to be considered relevant")
+    score_threshold: float = Field(default=0.7, description="Minimum score threshold for a document to be considered relevant")
     k: int = Field(default=5, description="Number of documents to retrieve")
 
     def _get_relevant_documents(self) -> List[Any]:
@@ -33,9 +33,15 @@ class ScoreThresholdRetriever(BaseRetriever):
             List[Document]: The list of relevant documents
         """
         try:
+            # search_params = {
+            #     "metric_type": "L2",
+            #     "params": {"nprobe": 10}
+            # }
             search_params = {
-                "metric_type": "L2",
-                "params": {"nprobe": 10}
+                "metric_type": "IP",
+                "params": {
+                    "ef": 200
+                }
             }
             result = collection.search(
                 data = [query_embedding],
@@ -45,7 +51,6 @@ class ScoreThresholdRetriever(BaseRetriever):
                 output_fields = ["title", "text" ,"source"]
             )
             docs_and_scores = result[0]
-            # docs_and_scores = self.vector_store.similarity_search_with_score(query, k=self.k)
         except Exception:
             return []
 
@@ -58,9 +63,8 @@ class ScoreThresholdRetriever(BaseRetriever):
 
         for doc in docs_and_scores:
             score = doc.distance
-            normalized_score = self._normalize_score(score)
-            print("Doc: ", doc)
-            print("Normalized score: ", normalized_score)
+            # normalized_score = self._normalize_score(score)
+            # print("Normalized score: ", normalized_score)
             page_content = doc.entity.get("text")
             title = doc.entity.get("title")
             source = doc.entity.get("source")
@@ -70,20 +74,21 @@ class ScoreThresholdRetriever(BaseRetriever):
                 title = "Untitled"
             if source is None:
                 source = "Unknown"
-            # Check if the document is relevant and has a higher score than the current highest score
-            if normalized_score >= self.score_threshold:
-                res = Document(
-                    page_content = page_content,
-                    metadata = {
-                        'score': normalized_score,
-                        'title': title,
-                        'source': source
-                    }
-                )
-                relevant_documents.append(res)
+            page_content =f" (title: {title})" + f" (source: {source})" + page_content + "\n"
+            # if normalized_score < self.score_threshold:
+            res = Document(
+                page_content = page_content,
+                metadata = {
+                    'score': score,
+                    'title': title,
+                    'source': source
+                }
+            )
+            print("Doc: ", doc)
+            relevant_documents.append(res)
 
         # Sort the relevant documents by score in descending order
-        relevant_documents.sort(key=lambda x: x.metadata["score"], reverse=True)
+        relevant_documents.sort(key=lambda x: x.metadata["score"])
 
         return relevant_documents
     

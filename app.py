@@ -3,7 +3,7 @@ from uuid import uuid4
 # import time
 import os
 import subprocess
-from backend.RAG import initialize_milvus, query_rag
+from backend.RAG import initialize_milvus, query_rag, get_corpus
 from collections import defaultdict
 import pandas as pd
 from metrics.chatbot_statistics import DatabaseClient  # Import the DatabaseClient class
@@ -54,7 +54,7 @@ class StreamlitApp:
                     st.session_state.current_user = None
                 if 'lockout_time' not in st.session_state:
                     st.session_state.lockout_time = defaultdict(lambda: 0)
-                if "messages" not in session_state:
+                if "messages" not in st.session_state:
                     self.db_client.create_performance_metrics_table()
                     self.db_client.insert_default_performance_metrics()
                     initialize_vector_store()
@@ -278,6 +278,9 @@ class StreamlitApp:
             user_message_id = st.session_state.get("QUERY_RUNNING")
         if prompt is None:
             prompt = st.session_state.messages[user_message_id]["content"]
+        if " ITS " in prompt or " ITS?" in prompt:
+            prompt = prompt.replace(" ITS ", " Information Technology Services (Technology Support Center) ")
+        print(prompt)
         response_placeholder = st.empty()
         with response_placeholder.container():
             with st.spinner('Generating Response...'):
@@ -293,9 +296,15 @@ class StreamlitApp:
             else:
                 if assistant_message_id is None:
                     assistant_message_id = user_message_id.replace("user_message", "assistant_message", 1)
-                st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
-                if "QUERY_RUNNING" in st.session_state:
-                    del st.session_state["QUERY_RUNNING"]
+                if "I don't have enough information to answer this question." in answer:
+                    CORPUS_SOURCE = get_corpus()
+                    st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. I can only answer questions based on this information. Please ask another question.", "source": 'Unknown'}
+                    if "QUERY_RUNNING" in st.session_state:
+                        del st.session_state["QUERY_RUNNING"]
+                else:
+                    st.session_state.messages[assistant_message_id] = {"role": "assistant", "content": answer, "source": source}
+                    if "QUERY_RUNNING" in st.session_state:
+                        del st.session_state["QUERY_RUNNING"]
         return True
     
     def main(self):
@@ -316,31 +325,37 @@ class StreamlitApp:
         # displays the performance metrics in the sidebar   
         self.display_performance_metrics()
 
-        # Handle user input
-        if prompt := st.chat_input("Ask ITS support chatbot"):
-            is_server_free = handle_rate_limiting()
-            if not is_server_free:
-                st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
-                st.stop()  # Stop further processing of the app
-            # creating user_message_id and assistant_message_id with the same unique "id" because they are related
-            unique_id = str(uuid4())
-            user_message_id = f"user_message_{unique_id}"
-            assistant_message_id = f"assistant_message_{unique_id}"
-
-            # save the user message in the session state
-            st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}
-            st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
-            response = self.run_query(prompt=prompt, user_message_id=user_message_id, assistant_message_id=assistant_message_id)
-            if response:
-                st.rerun()
-            else:
-                st.stop()  # Stop further processing of the app
+        # Check if a query is currently running
+        if st.session_state.get("QUERY_RUNNING"):
+            st.chat_input("Please wait, a response is currently being generated. You cannot ask a new question yet.", disabled=True)
+        else:
+            # Handle user input
+            if prompt := st.chat_input("Ask ITS support chatbot"):
+                is_server_free = handle_rate_limiting()
+                if not is_server_free:
+                    st.error("You've reached the limit of 10 questions per minute because the server has limited resources. Please try again in 3 minutes.")
+                    st.stop()  # Stop further processing of the app
+                # creating user_message_id and assistant_message_id with the same unique "id" because they are related
+                unique_id = str(uuid4())
+                user_message_id = f"user_message_{unique_id}"
+                assistant_message_id = f"assistant_message_{unique_id}"
+    
+                # save the user message in the session state
+                st.session_state.messages[user_message_id] = {"role": "user", "content": prompt}
+                st.markdown(f"<div class='user-message'>{prompt}</div>", unsafe_allow_html=True)
+                # Indicate that a query is running now
+                st.session_state["QUERY_RUNNING"] = user_message_id
+                response = self.run_query(prompt=prompt, user_message_id=user_message_id, assistant_message_id=assistant_message_id)
+                if response is not None or response: # If user ask question during query and gets an API error
+                    st.rerun()
+                else:
+                    st.stop()  # Stop further processing of the app
             
         # Handle the case where the query is still running but interrupted due to feedback buttons
         if st.session_state.get("QUERY_RUNNING", None):
             user_message_id = st.session_state.get("QUERY_RUNNING")
             response = self.run_query(user_message_id=user_message_id)
-            if response:
+            if response is not None or response: # If user gives feedback during query and gets an API error
                 st.rerun()
             else:
                 st.stop()  # Stop further processing of the app
