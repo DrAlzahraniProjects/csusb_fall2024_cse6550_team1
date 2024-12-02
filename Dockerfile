@@ -12,8 +12,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 
 # Import ARG and save to .ENV file
-ARG MISTRAL
-RUN echo "MISTRAL_API_KEY=$MISTRAL" > /app/.env
+ARG GROQ
+RUN echo "GROQ_API_KEY=$GROQ" > /app/.env
 
 # Update and install necessary packages
 RUN apt-get update && apt-get install -y \

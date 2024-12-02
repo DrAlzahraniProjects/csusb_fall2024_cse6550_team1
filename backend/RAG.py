@@ -30,9 +30,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 load_dotenv()
-MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
-os.environ['GROQ_API_KEY'] = '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'
-GROQ_API_KEY = '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'
+#MISTRAL_API_KEY = os.environ.get("MISTRAL_API_KEY")
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 MILVUS_URI = "/app/milvus/milvus_vector.db"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L12-v2"
 MAX_TEXT_LENGTH = 5000
