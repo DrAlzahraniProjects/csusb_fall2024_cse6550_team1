@@ -68,21 +68,7 @@ def display_loading_bar(duration):
 def run_docker_container():
     """Run the Docker container."""
     print("Running the Docker container...")
-    # Get the absolute path of the current working directory
-    current_dir = os.getcwd()
-
-    # Construct the volume paths
-    milvus_path = os.path.join(current_dir, "milvus")
-    logs_path = os.path.join(current_dir, "logs")
-
-    # Ensure the directories exist
-    os.makedirs(milvus_path, exist_ok=True)
-    os.makedirs(logs_path, exist_ok=True)
-    command = (
-        f"docker run -v {milvus_path}:/app/milvus "
-        f"-v {logs_path}:/app/logs -d -p 5001:5001 -p 6001:6001 team1_app"
-    )
-    run_command(command, "Failed to run Docker container")
+    run_command("docker run -d -p 5001:5001 -p 6001:6001 team1_app:latest", "Failed to run Docker container")
     print("Docker container started successfully!")
     display_loading_bar(30)  # 30 seconds duration
     print("You can now access the application:")
