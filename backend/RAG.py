@@ -66,7 +66,7 @@ def is_filtered_query(query):
             return True
     return False
 
-def format_source(response, default_url="https://www.csusb.edu/its"):
+def format_source(response, default_url="https://www.csusb.edu/its", title="ITS Knowledge Base"):
     """
     Reformat the source in the response to the markdown format [title](source).
     
@@ -84,7 +84,8 @@ def format_source(response, default_url="https://www.csusb.edu/its"):
         formatted_response = re.sub(pattern_with_url, r"Source: [\1](\2)", response)
     elif re.search(pattern_without_url, response):
         formatted_response = re.sub(pattern_without_url, fr"Source: [\1]({default_url})", response)
-    # formatted_response = re.sub(pattern_with_url, r"Source: [\1](\2)", response)
+    else:
+        formatted_response = response + f"\n\nSource: [{title}]({default_url})"
     return formatted_response
 
 def query_rag(query):
@@ -147,7 +148,7 @@ def query_rag(query):
         #     response += f"\n\nSource: [{title}]({source})"
         if response.lower().strip() == "the context does not contain enough information to answer this question.":
             return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
-        formatted_response = format_source(response, source)
+        formatted_response = format_source(response, source, title)
         print("Response Generated", formatted_response)
         # print("Response Generated")
         
