@@ -53,7 +53,7 @@ COPY requirements.txt /app/requirements.txt
 RUN mamba install --yes --file requirements.txt && mamba clean --all -f -y
 
 # Install Python packages not on Mamba DB
-RUN pip install -qU langchain-groq
+RUN pip install -qU langchain-groq pymilvus
 
 # RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
 # 	sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
