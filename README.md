@@ -49,7 +49,7 @@ Before you begin, ensure you have the following installed on your machine:
    git reset --hard
    ```
 
-5. **Update the local repository**
+4. **Update the local repository**
 
    Ensure your local repository is up to date by running:
 
@@ -57,51 +57,23 @@ Before you begin, ensure you have the following installed on your machine:
    git pull origin main
    ```
    
-6. **Build the Docker image**
+5. **Run the setup scrpit**
 
-   Build the Docker image using the following command:
-
-   *DO NOT RUN THIS COMMAND YET, THE API KEY IN STEP 5 MUST BE INCLUDED AT THE END OF THE COMMAND*
-
+   Setup script that runs relevant Docker commands and prompts user for the API Key:
    ```bash
-   docker build -t team1_app:latest . --build-arg MISTRAL=
+   python setup.py
    ```
 
-7. **Include the API key**
-
-   - Go to [Team1 QA](https://csusb.instructure.com/courses/43192/discussion_topics/419701) and copy the MISTRAL API key
-   - Paste the API key at the end of the previous instruction
-   - Your command should look like this:
-   ```bash
-   docker build -t team1_app:latest . --build-arg MISTRAL=APIKEYHERE
-   ```
-   - Run the command
-
-8. **Run the Docker container**
-
-   ### Windows PS or Docker Desktop Terminal
-
-   Run the Docker container with the following command:
+   **Note**: If the above command does not work (e.g., on Linux), try using:
 
    ```bash
-   docker run -v $pwd/milvus:/app/milvus -v $pwd/logs:/app/logs -d -p 5001:5001 -p 6001:6001 team1_app
+   python3 setup.py
    ```
 
-   ### Windows CMD
-   
-   Run the Docker container with the following command:
+6. **Follow On-Screen Prompts**
 
-   ```bash
-   docker run -v "%cd%"/milvus:/app/milvus -v "%cd%"/logs:/app/logs -d -p 5001:5001 -p 6001:6001 team1_app
-   ```
-
-   ### Linux CLI
-   
-   Run the Docker container with the following command:
-
-   ```bash
-   docker run -v $PWD/milvus:/app/milvus -v $PWD/logs:/app/logs -d -p 5001:5001 -p 6001:6001 team1_app
-   ```
+   - The script will ask for the GROQ API key that can be found [here](https://csusb.instructure.com/courses/43192/discussion_topics/419701)
+   - It will stop any existing containers, pull updates, build the Docker image, and run the container
 
 ## Accessing the Application
 
