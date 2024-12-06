@@ -104,8 +104,8 @@ def query_rag(query):
         # Check if the query is a filtered query and it is the first or second message
         if is_filtered_query(query):
             if CORPUS_SOURCE == 'https://www.csusb.edu/its':
-                return f"Hi there! I am an ITS Support Chatbot {CORPUS_SOURCE}. I can help you with your ITS related queries. How can I assist you today?", "Unknown"
-            return f"Hi there! I'm an AI assistant powered by {CORPUS_SOURCE}. I'm here to help with any questions you might have. How can I assist you today?", "Unknown"
+                return f"Hi there! I am an <a href={CORPUS_SOURCE}>ITS Support Chatbot</a>. I can help you with your ITS related queries. How can I assist you today?", "Unknown"
+            return f"Hi there! I'm an AI assistant powered by <a href={CORPUS_SOURCE}>link</a>. I'm here to help with any questions you might have. How can I assist you today?", "Unknown"
         
         # Define the model
         #chat_model = ChatMistralAI(model='open-mistral-7b', temperature = 0.2)
@@ -126,7 +126,9 @@ def query_rag(query):
 
         if not retrieved_documents:
             print("No Relevant Documents Retrieved, so sending default response")
-            return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
+            if CORPUS_SOURCE == 'https://www.csusb.edu/its':
+                return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
+            return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>link</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
 
         # Extract metadata from the most relevant document
         most_relevant_document = retrieved_documents[0]
@@ -142,10 +144,10 @@ def query_rag(query):
         })
 
         # Add the source to the response if available
-        # if isinstance(source, str) and source != "Unknown":
-        #     response += f"\n\nSource: [{title}]({source})"
         if response.lower().strip() == "the context does not contain enough information to answer this question.":
-            return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
+            if CORPUS_SOURCE == 'https://www.csusb.edu/its':
+                return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>CSUSB ITS Knowledge Base</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
+            return f"I don't have enough information to answer this question. I'm an AI assistant powered by <a href={CORPUS_SOURCE}>link</a>. \nI can only answer questions based on this information. Please ask another question.", "Unknown"
         formatted_response = format_source(response, source, title)
         print("Response Generated", formatted_response)
         # print("Response Generated")
