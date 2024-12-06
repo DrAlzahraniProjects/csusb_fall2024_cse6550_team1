@@ -53,6 +53,7 @@ def is_filtered_query(query):
         r"\b(hi|hello|hey|hiya|howdy|greetings|yo)\b", # Common greetings
         r"who (are|r) you\??", # Identity questions
         r"what('?s| is) your name\??", # Name questions
+        r"what('?s| is) your role\??", # Role questions
         r"(hi|hello|hey|yo),? (who are you|what('?s| is) your name)\??", # Greeting + identity
         r"(hi|hello|hey|yo),? (what do you do|what can you do)\??", # Greeting + capability
         r"good (morning|afternoon|evening),? (who are you|what('?s| is) your role)\??", # Polite intros
