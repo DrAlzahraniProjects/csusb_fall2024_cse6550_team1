@@ -1,6 +1,6 @@
-# IT Support Chatbot
+# ITS Support Chatbot
 
-This repository contains the IT Support Chatbot project developed by **CSUSB Fall 2024 CSE6550 Team 1**. The chatbot is designed to assist users with IT-related queries and support.
+This repository contains the ITS Support Chatbot project developed by **CSUSB Fall 2024 CSE6550 Team 1**. The chatbot is designed to assist users with IT-related queries and support.
 
 ## Table of Contents
 
@@ -140,7 +140,7 @@ The `setup.py` script automates Docker process. If this does not work view the *
 ## Accessing the Application
 
 ### Accessing locally through Docker 
-Once the Docker container is running, you can access the IT Support Chatbot through your browser at:
+Once the Docker container is running, you can access the ITS Support Chatbot through your browser at:
 
 [http://localhost:5001/team1](http://localhost:5001/team1) or [http://127.0.0.1:5001/team1](http://127.0.0.1:5001/team1)
 
